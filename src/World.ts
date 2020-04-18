@@ -71,7 +71,7 @@ export class World {
     /**
      * generate emergency event at random location in world
      */
-    createEmergency() {
+    public createEmergency() {
         
     }
 

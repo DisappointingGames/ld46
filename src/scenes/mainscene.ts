@@ -1,3 +1,5 @@
+import { World } from "../World";
+import { Scene, GameObjects, Time } from "phaser";
 import { Coordinate } from "../Coordinate";
 import { MoveType } from "../MoveType";
 
@@ -30,10 +32,15 @@ export class MainScene extends Phaser.Scene {
 
     //private playerSprite = new GameObjects.Sprite(this, 0,0,'');
 
+    private crashTimer : Time.TimerEvent | null = null;
     constructor() {
         super({
-            key: "MainScene"
+            key: "MainScene", 
+            mapAdd: {time: "time"}
         });
+
+        this.worldHeight = 42;
+        this.worldWidth = 42;
 
     }
 
@@ -54,6 +61,8 @@ export class MainScene extends Phaser.Scene {
     }
 
     create(): void {
+        
+        this.crashTimer = this.time.addEvent({delay: 1000, paused: true, callback : this.createEmergency, loop : true});
         //set camera
         this.cameras.main.setViewport(0, 0, 1024, 800);
         this.cameras.main.setScroll(42, 42);
@@ -103,7 +112,9 @@ export class MainScene extends Phaser.Scene {
             maxSpeed: 0.7
         };
 
+
         this.cameras.main.zoom = 0.2;
+        this.crashTimer.paused = false;
     }
 
     moveUp() {
@@ -328,6 +339,30 @@ export class MainScene extends Phaser.Scene {
         return MoveType.Illegal; //catching the "should never happen" ase
     }
 
+    createEmergency()
+    {
+        //var x = Phaser.Math.Between(0, this.worldWidth-1);
+        //var y = Phaser.Math.Between(0, this.worldHeight-1);
+        //Above were not working (result of between is NaN), so I hardcoded the numbers for now
+        console.log(Phaser.Math.Between(0, this.worldWidth-1));
+        var x = Math.floor(Math.random()* 42 + 0);
+        var y = Math.floor(Math.random()* 42 + 0);
+        if(/*this.cellIsWorkingServer(x,y)*/true)
+        {
+            //this.world![x][y].setTileType(TileType.BROKEN_TILE);
+            console.log("Broke server at (%d, %d)", x, y);
+            
+        }
+        else
+        {
+            /* We missed? Player lucky or just find the nearest working server and break that? */
+            console.log("Missed! (%d, %d)", x, y);
+        }
+    }
+
+    cellIsWorkingServer(x: integer, y: integer): Boolean {
+        return this.world![x][y].getTileType() === 'serverTile';
+    }
     outOfBounds(x: integer, y: integer): Boolean {
         return x < 0 || y < 0 || x >= this.worldWidth! || y >= this.worldHeight!;
     }
@@ -422,7 +457,8 @@ class Tile extends Phaser.GameObjects.Image {
 const enum TileType {
     EMPTY_TILE = "emptyTile",
     PLAYER_TILE = "playerTile",
-    SERVER_TILE = "serverTile"
+    SERVER_TILE = "serverTile",
+    BROKEN_TILE = "brokenServerTile"
 }
 
 const enum Dir {
