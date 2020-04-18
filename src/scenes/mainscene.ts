@@ -7,7 +7,7 @@ import { Cell } from "../Cell";
 export class MainScene extends Phaser.Scene {
 
     //just putting the world in here too, refactor later back to separate class
-    private world: Array<Phaser.GameObjects.Image> | null = null;
+    private world: Array<Array<Phaser.GameObjects.Image>> | null = null;
     private worldWidth: integer | null = null;
     private worldHeight: integer | null = null;
     private tileWidthHalf: integer | null = null;
@@ -41,6 +41,7 @@ export class MainScene extends Phaser.Scene {
     // noinspection JSUnusedGlobalSymbols
     preload(): void {
         this.load.image("emptyTile", 'assets/graphics/empty_tile.png')
+        this.load.image("playerTile", 'assets/graphics/player_tile.png')
         this.load.image("serverTile", '/assets/graphics/server.png')
         this.load.image("brokenServerTile", 'assets/graphics/server.png');
     }
@@ -57,8 +58,8 @@ export class MainScene extends Phaser.Scene {
         this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         //initial world building
-        this.worldWidth = 100;
-        this.worldHeight = 100;
+        this.worldWidth = 42;
+        this.worldHeight = 42;
 
         this.tileWidthHalf = 88;
         this.tileHeightHalf = 50;
@@ -68,24 +69,37 @@ export class MainScene extends Phaser.Scene {
 
         this.world = new Array();
         for (let i = 0; i < this.worldWidth; i++) {
+            let inner = new Array();
             for (let j = 0; j < this.worldHeight; j++) {
                 let tx = (i - j) * this.tileWidthHalf;
                 let ty = (i + j) * this.tileHeightHalf;
 
                 let tileType = (Math.random() < 0.42) ? 'serverTile' : 'emptyTile';
-                let tile = this.add.image(this.centerX + tx, this.centerY + ty, tileType);
+
+                let drawx = this.centerX + tx;
+                let drawy = this.centerY + ty;
+                let tile = this.add.image(drawx, drawy, tileType);
+
+                tile.setData('tileType', tileType);
 
                 tile.setData('row', i);
                 tile.setData('col', j);
 
+                tile.setData('drawX', drawx);
+                tile.setData('drawY', drawy);
+
                 tile.setDepth(this.centerY + ty);
 
-                this.world.push(tile);
-            }            
+                inner.push(tile);
+            }
+            this.world.push(inner);
         }
 
         //todo init player
-        this.playerPos = new Coordinate(50,50);
+        //this player tile is just for testing the game logic until we have a player done
+        this.playerPos = new Coordinate(41,41);
+        let playerTile = this.world[this.playerPos.x][this.playerPos.y];
+        this.world[this.playerPos.x][this.playerPos.y].setTexture('playerTile');
 
         let cursors = this.input.keyboard.createCursorKeys();
 
@@ -103,8 +117,10 @@ export class MainScene extends Phaser.Scene {
 
         this.controls = new Phaser.Cameras.Controls.SmoothedKeyControl(controlConfig);
 
-        this.cameras.main.zoom = 0.62;
-        this.cameras.main.setScroll(5000,5000)
+        this.cameras.main.zoom = 0.2;
+        this.cameras.main.setScroll(this.playerPos.x * this.tileWidthHalf,this.playerPos.y*this.tileHeightHalf)
+       
+        
     }
     
     update(time: number, delta: number) {
@@ -125,7 +141,7 @@ export class MainScene extends Phaser.Scene {
             this.playerPos.x--;
         }
 
-        //this.cameras.main.setScroll(this.playerPos.x, this.playerPos.y);
+        console.log(this.cameras.main.zoom);
 
     }
 
