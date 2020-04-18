@@ -9,6 +9,8 @@ export class World {
 
     public cells: Array<Array<Cell>>;
 
+    public playerPos = new Coordinate(100,100);
+
     constructor(width: number, height: number) {        
         this.width = width;
         this.height = height;
@@ -18,9 +20,15 @@ export class World {
         for (let i = 0; i < width; i++) {
             let inner = new Array<Cell>();
             for (let j = 0; j < height; j++) {
-                inner.push(
-                    new Cell(new Coordinate(i,j), CellType.BrokenServer)
-                );                
+                if(i % 7 == 0 || j % 7 == 0) {
+                    inner.push(
+                        new Cell(new Coordinate(i,j), CellType.BrokenServer)
+                    );    
+                } else {
+                    inner.push(
+                        new Cell(new Coordinate(i,j), CellType.Empty)
+                    ); 
+                }   
             }
             this.cells.push(inner)            
         }
@@ -68,4 +76,20 @@ export class World {
     increaseSize() {
 
     }
+
+    moveUp() {
+        this.playerPos.y--;
+    }
+
+    moveDown() {
+        this.playerPos.y++;
+    }
+
+    moveLeft() {
+        this.playerPos.x--;
+    }
+    moveRight() {
+        this.playerPos.x++;
+    }
+
 }

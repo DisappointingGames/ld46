@@ -9,7 +9,7 @@ export default class Demo extends Phaser.Scene
     }
 
     preload () {
-          
+        
     }
 
     create () {        

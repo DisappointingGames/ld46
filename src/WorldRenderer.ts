@@ -11,25 +11,27 @@ export class WorldRenderer {
     private readonly scene: Scene;
 
     private tileWidth: integer;
+    private borderOffset = new Coordinate(250,50);//to centralise the isometric level display
 
     // needs to be called in preload magic
     constructor(scene: Scene) {
         this.scene = scene;
-        // 300x300 tiles
         
-        /*this.emptyTile = scene.load.image("emptyTile", 'assets/graphics/server.png')
-        this.serverTile = scene.load.image("serverTile", '/assets/graphics/server.png')
-        this.brokenServerTile = scene.load.image("brokenServerTile", 'assets/graphics/server.png');
-        */
-       
-        this.tileWidth = 32;
         // 176x300 tiles
         this.emptyTile = scene.load.image("emptyTile", 'assets/graphics/server_trimmed.png')
         this.serverTile = scene.load.image("serverTile", '/assets/graphics/server_trimmed.png')
         this.brokenServerTile = scene.load.image("brokenServerTile", 'assets/graphics/server_trimmed.png');
+        
+        this.tileWidth = 88;
+
+        
     }
 
-    render(currentScene: Scene, world: World) {
+    render(currentScene: Scene, world: World, camerapos: Coordinate) {
+        
+
+        this.scene.cameras.main.setScroll(world.playerPos.x, world.playerPos.y);
+
         console.log(this.serverTile)
 
         for (var i = 0; i < world.cells.length; i++) {
@@ -45,10 +47,10 @@ export class WorldRenderer {
         var cartPt = new Coordinate(j*this.tileWidth, i*this.tileWidth);
         let isoPt = this.cartesianToIsometric(cartPt);
         
-        let wallHeight = 48;
+        let wallHeight = 300;
         let borderOffset = new Coordinate(32,32);
 
-        currentScene.add.image(isoPt.x+borderOffset.x, isoPt.y+borderOffset.y-wallHeight, "serverTile");
+        currentScene.add.sprite(isoPt.x+borderOffset.x, isoPt.y+borderOffset.y-wallHeight, "serverTile");
     }
 
     cartesianToIsometric(c: Coordinate): Coordinate {
