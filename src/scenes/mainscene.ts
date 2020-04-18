@@ -12,7 +12,6 @@ export class MainScene extends Phaser.Scene {
     private readonly centerY = (this.worldHeight / 2) * this.tileHeightHalf;
     private playerPos: Coordinate = new Coordinate(50, 50);
     private playerSpeed = 2.0;
-    public playerDir = "up";
 
     //for key handling
     private keyboard = Phaser.Input.Keyboard;
@@ -23,7 +22,7 @@ export class MainScene extends Phaser.Scene {
     private spaceKey: Phaser.Input.Keyboard.Key | null = null;
 
     //for player movement and animation 
-    player: any;
+    private player: any;
 
     //private playerSprite = new GameObjects.Sprite(this, 0,0,'');
 
@@ -105,16 +104,14 @@ export class MainScene extends Phaser.Scene {
     }
 
     addPlayer(): void {
-        this.player = this.add.sprite(1100, 1000, 'dude');
-        this.player.setScale(3, 3);
+        this.player = this.add.sprite(1100, 1000, 'dude')
+        this.player.setScale(3, 3)
         let walk = this.anims.create({
             key: 'manimation',
             frames: this.anims.generateFrameNames('dude', { start: 0, end: 4 }),
             frameRate: 10,
             repeat: Phaser.FOREVER
-        }
-        );
-
+        })
         this.player.anims.play('manimation');
     }
 
@@ -238,8 +235,8 @@ export class MainScene extends Phaser.Scene {
 
     getWorldToScreenCoords(c: Coordinate): Coordinate {
         return new Coordinate(
-            (c.x - c.y) * this.tileWidthHalf! + this.centerX!,
-            (c.x + c.y) * this.tileHeightHalf! + this.centerY!
+            (c.x - c.y) * this.tileWidthHalf + this.centerX,
+            (c.x + c.y) * this.tileHeightHalf + this.centerY
         );
     }
 
