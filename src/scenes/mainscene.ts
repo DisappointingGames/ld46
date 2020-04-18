@@ -4,11 +4,8 @@ import { Scene } from "phaser";
 
 export class MainScene extends Phaser.Scene {
 
-    private renderers?: Renderers 
-    private gameState?: GameState 
-
-
-    private serverTile?: Phaser.Loader.LoaderPlugin;
+    private renderers: Renderers | any = null
+    private gameState: GameState | any = null
 
     constructor() {
         super({
@@ -16,44 +13,22 @@ export class MainScene extends Phaser.Scene {
         });
     }
 
-    
-
+    // noinspection JSUnusedGlobalSymbols
     preload(): void {
-        this.serverTile = this.load.image("waah", 'assets/graphics/server.png')
-        
+        this.renderers = new Renderers(this)
     }
 
     create(): void {
         this.add.text(256 + 64, 256 + 128, "Go find the server and fix it").setScale(1);
 
-
         let world = new World(100, 100);
 
-        this.renderers = new Renderers(this)
         this.gameState = new GameState(world)
-        // this.renderers.worldRenderer.render(this, this.gameState.world)
-
-        
-        
-     
-            
-    }
-
-    loop(): void {
-
     }
 
     update(time: number, delta: number) {
-        //this.renderers!!.worldRenderer.render(this, this.gameState!!.world) 
-        
-        this.add.image(
-            10,
-            10,
-            "waah"
-        )   
+        this.renderers.worldRenderer.render(this, this.gameState.world)
     }
-
-    
 }
 
 class Renderers {
