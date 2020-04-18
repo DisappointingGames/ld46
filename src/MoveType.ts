@@ -4,5 +4,9 @@ export enum MoveType {
     PushDown,
     PushUp,
     PushLeft,
-    PushRight
+    PushRight,
+    PullDown,
+    PullUp,
+    PullLeft,
+    PullRight
 }
