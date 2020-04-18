@@ -47,7 +47,6 @@ export class WorldRenderer {
     }
 
     renderPlayer(currentScene : Scene, world : World){    
-        currentScene.add.sprite(400,300, 'player').setScale(2);
         this.drawHeroIso(currentScene, world);
     }
     
