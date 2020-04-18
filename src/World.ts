@@ -1,21 +1,29 @@
 import { Cell } from "./Cell";
 import { CellType } from "./CellType";
+import { Coordinate } from "./Coordinate";
 
 export class World {
     
-    private width: integer;
-    private height: integer;
+    public readonly width: integer;
+    public readonly height: integer;
+
+    private cells: Array<Array<Cell>>;
 
     constructor(width: number, height: number) {        
         this.width = width;
         this.height = height;
-    }
 
-    /**
-     * initialize world of default size with servers and walk space
-     */
-    initialize() {
+        this.cells = new Array();
 
+        for (let i = 0; i < width; i++) {
+            let inner = new Array<Cell>();
+            for (let j = 0; j < height; j++) {
+                inner.push(
+                    new Cell(new Coordinate(i,j), CellType.BrokenServer)
+                );                
+            }
+            this.cells.push(inner)            
+        }
     }
 
     /**
@@ -29,6 +37,10 @@ export class World {
             to.celltype = from.celltype;
             from.celltype = CellType.Empty;            
         }
+    }
+
+    getCellAt(c: Coordinate): Cell {
+        return this.cells[c.x][c.y];
     }
 
     /**
