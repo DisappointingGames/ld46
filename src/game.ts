@@ -1,4 +1,6 @@
 import 'phaser';
+import { MenuScene } from './scenes/menuscene';
+import { MainScene } from './scenes/mainscene';
 
 export default class Demo extends Phaser.Scene
 {
@@ -17,10 +19,6 @@ export default class Demo extends Phaser.Scene
 
     create ()
     {
-        this.add.shader('RGB Shift Field', 0, 0, 800, 600).setOrigin(0);
-
-        this.add.shader('Plasma', 0, 412, 800, 172).setOrigin(0);
-
         this.add.image(400, 300, 'libs');
 
         const logo = this.add.image(400, 70, 'logo');
@@ -38,10 +36,13 @@ export default class Demo extends Phaser.Scene
 
 const config = {
     type: Phaser.AUTO,
-    backgroundColor: '#125555',
-    width: 800,
-    height: 600,
-    scene: Demo
+    backgroundColor: '#636363',
+    width: 1024,
+    height: 800,
+    scene: [MenuScene, MainScene], 
+    input: { 
+        mouse: true
+    }
 };
 
 const game = new Phaser.Game(config);
