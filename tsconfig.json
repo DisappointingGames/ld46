@@ -10,7 +10,9 @@
       "module": "CommonJS",
       "noImplicitAny": true,
       "strictNullChecks": true,
-      "strict": true
+      "strict": true,
+      "alwaysStrict": true,
+      "sourceMap": true
   }
   
 }
