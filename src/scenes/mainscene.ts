@@ -1,12 +1,20 @@
 import { World } from "../World";
-import { WorldRenderer} from "../WorldRenderer"
 import { Scene } from "phaser";
 import { Coordinate } from "../Coordinate";
 import { CellType } from "../CellType";
+import { Cell } from "../Cell";
 
 export class MainScene extends Phaser.Scene {
 
-    private world: World;
+    //just putting the world in here too, refactor later back to separate class
+    private world: Array<Phaser.GameObjects.Image> | null = null;
+    private worldWidth: integer | null = null;
+    private worldHeight: integer | null = null;
+    private tileWidthHalf: integer | null = null;
+    private tileHeightHalf: integer | null = null;
+    private centerX: integer | null = null;
+    private centerY: integer | null = null;
+    private playerPos: Coordinate = new Coordinate(50,50);
 
     //for key handling
     private keyboard = Phaser.Input.Keyboard;
@@ -19,9 +27,8 @@ export class MainScene extends Phaser.Scene {
     //just for testing, later should depend on player position
     private camerapos = new Coordinate(100,100);
 
-
-    private tileWidth = 88;
     private borderOffset = new Coordinate(250,50);//to centralise the isometric level display
+    private controls: Phaser.Cameras.Controls.SmoothedKeyControl | null = null;
 
 
     constructor() {
@@ -29,7 +36,6 @@ export class MainScene extends Phaser.Scene {
             key: "MainScene"
         });
 
-        this.world = new World(100,100);
     }
 
     // noinspection JSUnusedGlobalSymbols
@@ -41,7 +47,7 @@ export class MainScene extends Phaser.Scene {
 
     create(): void {
         //set camera
-        this.cameras.main.setScroll(100,100);
+        this.cameras.main.setScroll(42,42);
 
         //define keyboard input
         this.downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
@@ -50,46 +56,78 @@ export class MainScene extends Phaser.Scene {
         this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
         this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-        //initial drawing
-        for (var i = 0; i < this.world.cells.length; i++) {
-            for (var j = 0; j < this.world.cells[i].length; j++) {
-                if (this.world.cells[i][j].celltype != CellType.Empty) {
-                    this.drawTileIso(this.world.cells[i][j].celltype, i, j);
-                }
-            }
+        //initial world building
+        this.worldWidth = 100;
+        this.worldHeight = 100;
+
+        this.tileWidthHalf = 88;
+        this.tileHeightHalf = 150;
+
+        this.centerX = (this.worldWidth / 2) * this.tileWidthHalf;
+        this.centerY = -100;
+
+        this.world = new Array();
+        for (let i = 0; i < this.worldWidth; i++) {
+            for (let j = 0; j < this.worldHeight; j++) {
+                let tx = (i - j) * this.tileWidthHalf;
+                let ty = (i + j) * this.tileHeightHalf;
+
+                let tileType = (i%3==0 && j%3==0) ? 'serverTile' : 'emptyTile';
+                let tile = this.add.image(this.centerX + tx, this.centerY + ty, tileType);
+
+                tile.setData('row', i);
+                tile.setData('col', j);
+
+                tile.setDepth(this.centerY + ty);
+
+                this.world.push(tile);
+            }            
         }
+
+        //todo init player
+        this.playerPos = new Coordinate(50,50);
+
+        let cursors = this.input.keyboard.createCursorKeys();
+
+        //some testing
+        let controlConfig = {
+            camera: this.cameras.main,
+            left: cursors.left,
+            right: cursors.right,
+            zoomIn: cursors.up,
+            zoomOut: cursors.down,
+            acceleration: 0.04,
+            drag: 0.0005,
+            maxSpeed: 0.7
+        };   
+
+        this.controls = new Phaser.Cameras.Controls.SmoothedKeyControl(controlConfig);
+
+        this.cameras.main.zoom = 0.62;
+        this.cameras.main.setScroll(5000,5000)
     }
     
-    drawTileIso(celltype: CellType, i: number, j: number) {
-        var cartPt = new Coordinate(j*this.tileWidth, i*this.tileWidth);
-        let isoPt = this.cartesianToIsometric(cartPt);
-        
-        let wallHeight = 300;
-        let borderOffset = new Coordinate(32,32);
-
-        this.add.sprite(isoPt.x+borderOffset.x, isoPt.y+borderOffset.y-wallHeight, "serverTile");
-    }
-
-    cartesianToIsometric(c: Coordinate): Coordinate {
-        return new Coordinate(c.x-c.y, (c.x+c.y)/2);
-    }
-
     update(time: number, delta: number) {
+        
+        this.controls?.update(delta);
+        
         //handle keyboard input
         if(this.downKey?.isDown) {
-            this.world.moveDown();
+            this.playerPos.y++;
         }
         if(this.upKey?.isDown) {
-            this.world.moveUp();
+            this.playerPos.y--;
         }
         if(this.leftKey?.isDown) {
-            this.world.moveLeft();
+            this.playerPos.x++;
         }
         if(this.rightKey?.isDown) {
-            this.world.moveRight();
+            this.playerPos.x--;
         }
 
-        this.cameras.main.setScroll(this.world.playerPos.x, this.world.playerPos.y);
+        //this.cameras.main.setScroll(this.playerPos.x, this.playerPos.y);
+
     }
+
 }
 
