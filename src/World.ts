@@ -7,7 +7,7 @@ export class World {
     public readonly width: integer;
     public readonly height: integer;
 
-    private cells: Array<Array<Cell>>;
+    public cells: Array<Array<Cell>>;
 
     constructor(width: number, height: number) {        
         this.width = width;
