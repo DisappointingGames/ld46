@@ -16,11 +16,17 @@ export class WorldRenderer {
     constructor(scene: Scene) {
         this.scene = scene;
         // 300x300 tiles
-        this.emptyTile = scene.load.image("emptyTile", 'assets/graphics/server.png')
+        
+        /*this.emptyTile = scene.load.image("emptyTile", 'assets/graphics/server.png')
         this.serverTile = scene.load.image("serverTile", '/assets/graphics/server.png')
         this.brokenServerTile = scene.load.image("brokenServerTile", 'assets/graphics/server.png');
-
+        */
+       
         this.tileWidth = 32;
+        // 176x300 tiles
+        this.emptyTile = scene.load.image("emptyTile", 'assets/graphics/server_trimmed.png')
+        this.serverTile = scene.load.image("serverTile", '/assets/graphics/server_trimmed.png')
+        this.brokenServerTile = scene.load.image("brokenServerTile", 'assets/graphics/server_trimmed.png');
     }
 
     render(currentScene: Scene, world: World) {
