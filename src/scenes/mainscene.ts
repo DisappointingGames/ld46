@@ -9,7 +9,7 @@ import { MoveType } from "../MoveType";
 export class MainScene extends Phaser.Scene {
 
     //just putting the world in here too, refactor later back to separate class
-    private world: Array<Array<Phaser.GameObjects.Image>> | null = null;
+    private world: Array<Array<Tile>> | null = null;
     private worldWidth: integer | null = null;
     private worldHeight: integer | null = null;
     private tileWidthHalf: integer | null = null;
@@ -67,20 +67,16 @@ export class MainScene extends Phaser.Scene {
         this.centerX = (this.worldWidth / 2) * this.tileWidthHalf;
         this.centerY = (this.worldHeight / 2) * this.tileHeightHalf;
 
-        this.world = new Array();
+        this.world = [];
         for (let i = 0; i < this.worldWidth; i++) {
-            let inner = new Array();
+            let inner = [];
             for (let j = 0; j < this.worldHeight; j++) {
                 let tc = this.getWorldToScreenCoords(new Coordinate(i, j));
 
                 let tileType = (Math.random() < 0.24) ? 'serverTile' : 'emptyTile';
 
-                let tile = this.add.image(tc.x, tc.y, tileType);
-
-                tile.setData('tileType', tileType);
-
-                tile.setData('row', i);
-                tile.setData('col', j);
+                let tile = new Tile(this, tc.x, tc.y, tileType, tileType, i, j);
+                this.add.existing(tile);
 
                 tile.setDepth(this.centerY + tc.y);
 
@@ -190,23 +186,23 @@ export class MainScene extends Phaser.Scene {
         if (moved) {
             //first, if push then we must push the thing that was first in our way one further      
             if (moveType == MoveType.PushDown) {
-                let oldType = this.world![oldPlayerPos!.x][oldPlayerPos!.y + 1].getData('tileType');
-                this.world![oldPlayerPos!.x][oldPlayerPos!.y + 2].setData('tileType', oldType);
+                let oldType = this.world![oldPlayerPos!.x][oldPlayerPos!.y + 1].getTileType();
+                this.world![oldPlayerPos!.x][oldPlayerPos!.y + 2].setTileType(oldType);
                 this.world![oldPlayerPos!.x][oldPlayerPos!.y + 2].setTexture(oldType);
             }
             if (moveType == MoveType.PushUp) {
-                let oldType = this.world![oldPlayerPos!.x][oldPlayerPos!.y - 1].getData('tileType');
-                this.world![oldPlayerPos!.x][oldPlayerPos!.y - 2].setData('tileType', oldType);
+                let oldType = this.world![oldPlayerPos!.x][oldPlayerPos!.y - 1].getTileType();
+                this.world![oldPlayerPos!.x][oldPlayerPos!.y - 2].setTileType(oldType);
                 this.world![oldPlayerPos!.x][oldPlayerPos!.y - 2].setTexture(oldType);
             }
             if (moveType == MoveType.PushLeft) {
-                let oldType = this.world![oldPlayerPos!.x - 1][oldPlayerPos!.y].getData('tileType');
-                this.world![oldPlayerPos!.x - 2][oldPlayerPos!.y].setData('tileType', oldType);
+                let oldType = this.world![oldPlayerPos!.x - 1][oldPlayerPos!.y].getTileType();
+                this.world![oldPlayerPos!.x - 2][oldPlayerPos!.y].setTileType(oldType);
                 this.world![oldPlayerPos!.x - 2][oldPlayerPos!.y].setTexture(oldType);
             }
-            if (moveType == MoveType.PushRight) {
-                let oldType = this.world![oldPlayerPos!.x + 1][oldPlayerPos!.y].getData('tileType');
-                this.world![oldPlayerPos!.x + 2][oldPlayerPos!.y].setData('tileType', oldType);
+            if (moveType == MoveType.PushRight) {                
+                let oldType = this.world![oldPlayerPos!.x + 1][oldPlayerPos!.y].getTileType();
+                this.world![oldPlayerPos!.x + 2][oldPlayerPos!.y].setTileType(oldType);
                 this.world![oldPlayerPos!.x + 2][oldPlayerPos!.y].setTexture(oldType);
             }
 
@@ -254,6 +250,9 @@ export class MainScene extends Phaser.Scene {
             let playerTile = this.world![this.playerPos!.x][this.playerPos!.y];
             this.world![this.playerPos!.x][this.playerPos!.y].setData('tileType', 'playerTile');
             this.world![this.playerPos!.x][this.playerPos!.y].setTexture('playerTile');
+
+            this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTileType('emptyTile');
+            this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTexture('emptyTile');
         }
 
         //update camera
@@ -301,7 +300,7 @@ export class MainScene extends Phaser.Scene {
                             return MoveType.PullRight;
                         }
                         break;
-                };
+                }
             }
 
             //if none of that worked, its just a normal step
@@ -340,7 +339,30 @@ export class MainScene extends Phaser.Scene {
     }
 
     cellEmpty(x: integer, y: integer): Boolean {
-        return this.world![x][y].getData('tileType') === 'emptyTile';
+        return this.world![x][y].getTileType() === 'emptyTile';
     }
+}
+
+class Tile extends Phaser.GameObjects.Image {
+
+    private tileType: string
+    public readonly row: number
+    public readonly col: number
+
+    constructor(scene: Phaser.Scene, x: number, y: number, texture: string, tileType: string, row: number, col: number, frame?: string | integer) {
+        super(scene, x, y, texture, frame)
+        this.tileType = tileType
+        this.row = row
+        this.col = col
+    }
+
+    setTileType(tileType: string) {
+        this.tileType = tileType
+    }
+
+    getTileType() {
+        return this.tileType
+    }
+
 }
 
