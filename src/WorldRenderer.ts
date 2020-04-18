@@ -24,7 +24,8 @@ export class WorldRenderer {
         
         this.tileWidth = 88;
 
-        
+        //scene.load.atlas('hero', 'https://dl.dropboxusercontent.com/s/hradzhl7mok1q25/hero_8_4_41_62.png?dl=0', 'https://dl.dropboxusercontent.com/s/95vb0e8zscc4k54/hero_8_4_41_62.json?dl=0');
+        scene.load.image("player", "asserts/graphics/stickman.png");
     }
 
     render(currentScene: Scene, world: World, camerapos: Coordinate) {
@@ -41,8 +42,25 @@ export class WorldRenderer {
                 }
             }
         }
+
+        this.renderPlayer(currentScene, world);
     }
 
+    renderPlayer(currentScene : Scene, world : World){    
+        currentScene.add.sprite(400,300, 'player').setScale(2);
+        this.drawHeroIso(currentScene, world);
+    }
+    
+    drawHeroIso(currentScene : Scene, world : World){
+        var isoPt= new Coordinate(0,0);//It is not advisable to create points in update loop
+        var heroCornerPt=new Coordinate(
+            world.playerPos.x * this.tileWidth + (this.tileWidth/3),
+            world.playerPos.y * this.tileWidth);
+        isoPt=this.cartesianToIsometric(heroCornerPt);//find new isometric position for hero from 2D map position
+        
+        let borderOffset = new Coordinate(32,32);
+        currentScene.add.sprite(isoPt.x+borderOffset.x, isoPt.y+borderOffset.y-40, 'player').setScale(2);
+    }
     drawTileIso(currentScene: Scene, celltype: CellType, i: number, j: number) {
         var cartPt = new Coordinate(j*this.tileWidth, i*this.tileWidth);
         let isoPt = this.cartesianToIsometric(cartPt);
