@@ -1,6 +1,7 @@
 import { Cell } from "./Cell";
 import { CellType } from "./CellType";
 import { Coordinate } from "./Coordinate";
+import {Powerup} from "./PlayerStuff"
 
 export class World {
     
@@ -9,7 +10,11 @@ export class World {
 
     public cells: Array<Array<Cell>>;
 
-    public playerPos = new Coordinate(100,100);
+    public playerPos = new Coordinate(4,4);
+    public playerDir = "up";
+    public dX = 0.0;
+    public dY = 0.0;
+    public playerSpeed = 2.0;
 
     constructor(width: number, height: number) {        
         this.width = width;
@@ -78,18 +83,17 @@ export class World {
     }
 
     moveUp() {
-        this.playerPos.y--;
+        this.playerPos.y -= this.playerSpeed;
     }
 
     moveDown() {
-        this.playerPos.y++;
+        this.playerPos.y += this.playerSpeed;
     }
 
     moveLeft() {
-        this.playerPos.x--;
+        this.playerPos.x -= this.playerSpeed;
     }
     moveRight() {
-        this.playerPos.x++;
+        this.playerPos.x += this.playerSpeed;
     }
-
 }
