@@ -28,6 +28,9 @@ export class MainScene extends Phaser.Scene {
     private rightKey: Phaser.Input.Keyboard.Key | null = null;
     private spaceKey: Phaser.Input.Keyboard.Key | null = null;
 
+    //for player movement and animation 
+    player: any;
+
     //private playerSprite = new GameObjects.Sprite(this, 0,0,'');
 
     constructor() {
@@ -39,10 +42,19 @@ export class MainScene extends Phaser.Scene {
 
     // noinspection JSUnusedGlobalSymbols
     preload(): void {
+        let spritesheetconfig = {
+            frameWidth: 32,
+            frameHeight: 48,
+            startFrame: 0,
+            endFrame: 5,
+            margin: 0,
+            spacing: 0
+        };
         this.load.image("emptyTile", 'assets/graphics/empty_tile.png')
         this.load.image("playerTile", 'assets/graphics/player_tile.png')
         this.load.image("serverTile", '/assets/graphics/server.png')
         this.load.image("brokenServerTile", 'assets/graphics/server.png');
+        this.load.spritesheet('dude', 'assets/graphics/dude.png', spritesheetconfig);
     }
 
     create(): void {
@@ -87,13 +99,14 @@ export class MainScene extends Phaser.Scene {
 
         //todo init player
         //this player tile is just for testing the game logic until we have a player done
+        this.addPlayer();
         this.playerPos = new Coordinate(21, 21);
         let playerTile = this.world[this.playerPos.x][this.playerPos.y];
         this.world[this.playerPos.x][this.playerPos.y].setTexture('playerTile');
 
         let cursors = this.input.keyboard.createCursorKeys();
 
-        //some testing
+        //some testing for camera
         let controlConfig = {
             camera: this.cameras.main,
             left: cursors.left,
@@ -106,6 +119,20 @@ export class MainScene extends Phaser.Scene {
         };
 
         this.cameras.main.zoom = 0.2;
+    }
+
+    addPlayer(): void {
+        this.player = this.add.sprite(1100, 1000, 'dude');
+        this.player.setScale(3, 3);
+        let walk = this.anims.create({
+            key: 'manimation',
+            frames: this.anims.generateFrameNames('dude', { start: 0, end: 4 }),
+            frameRate: 10,
+            repeat: Phaser.FOREVER
+        }
+        );
+
+        this.player.anims.play('manimation');
     }
 
 
@@ -125,7 +152,7 @@ export class MainScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-
+        //game logic for player and server movements
         let oldPlayerPos = new Coordinate(this.playerPos.x, this.playerPos.y);
         let moved = false;
 
@@ -339,6 +366,7 @@ export class MainScene extends Phaser.Scene {
         return this.world![x][y].getTileType() === 'emptyTile';
     }
 }
+
 
 class Tile extends Phaser.GameObjects.Image {
 
