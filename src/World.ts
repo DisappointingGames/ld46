@@ -16,11 +16,11 @@ export class World {
     public dY = 0.0;
     public playerSpeed = 2.0;
 
-    constructor(width: number, height: number) {        
+    constructor(width: number, height: number) {
         this.width = width;
         this.height = height;
 
-        this.cells = new Array();
+        this.cells = [];
 
         for (let i = 0; i < width; i++) {
             let inner = new Array<Cell>();
@@ -28,12 +28,12 @@ export class World {
                 if(i % 7 == 0 || j % 7 == 0) {
                     inner.push(
                         new Cell(new Coordinate(i,j), CellType.BrokenServer)
-                    );    
+                    );
                 } else {
                     inner.push(
                         new Cell(new Coordinate(i,j), CellType.Empty)
-                    ); 
-                }   
+                    );
+                }
             }
             this.cells.push(inner)            
         }
