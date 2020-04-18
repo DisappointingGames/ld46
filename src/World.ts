@@ -2,13 +2,11 @@ import { Cell } from "./Cell";
 import { CellType } from "./CellType";
 
 export class World {
-
-    private scene: Phaser.Scene;
+    
     private width: integer;
     private height: integer;
 
-    constructor(scene: Phaser.Scene, width: number, height: number) {
-        this.scene = scene;
+    constructor(width: number, height: number) {        
         this.width = width;
         this.height = height;
     }
