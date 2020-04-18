@@ -4,33 +4,16 @@ import { MainScene } from './scenes/mainscene';
 
 export default class Demo extends Phaser.Scene
 {
-    constructor ()
-    {
+    constructor () {
         super('demo');
     }
 
-    preload ()
-    {
-        this.load.image('logo', 'assets/phaser3-logo.png');
-        this.load.image('libs', 'assets/libs.png');
-        this.load.glsl('bundle', 'assets/plasma-bundle.glsl.js');
-        this.load.glsl('stars', 'assets/starfields.glsl.js');
+    preload () {
+          
     }
 
-    create ()
-    {
-        this.add.image(400, 300, 'libs');
-
-        const logo = this.add.image(400, 70, 'logo');
-
-        this.tweens.add({
-            targets: logo,
-            y: 350,
-            duration: 1500,
-            ease: 'Sine.inOut',
-            yoyo: true,
-            repeat: -1
-        })
+    create () {        
+        
     }
 }
 
