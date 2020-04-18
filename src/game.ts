@@ -7,11 +7,9 @@ export default class Demo extends Phaser.Scene
     constructor () {
         super('demo');
     }
-
-    preload () {
+    preload () {        
         
     }
-
     create () {        
         
     }

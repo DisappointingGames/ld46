@@ -6,10 +6,8 @@ export class MenuScene extends Phaser.Scene {
         });
     }
 
-    preload(): void {
-        
+    preload(): void {        
     }
-
     create(): void {
         this.add.text(256 + 64, 256 + 128, 
             "Keep the datacenter alive!\n\n\nClick Anywhere to start!")

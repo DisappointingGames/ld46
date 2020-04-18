@@ -1,9 +1,10 @@
 import { World } from "../World";
-import { Scene } from "phaser";
+import { Scene, GameObjects } from "phaser";
 import { Coordinate } from "../Coordinate";
 import { CellType } from "../CellType";
 import { Cell } from "../Cell";
 
+//Player sprite, if we want to change it between scenes
 export class MainScene extends Phaser.Scene {
 
     //just putting the world in here too, refactor later back to separate class
@@ -15,6 +16,8 @@ export class MainScene extends Phaser.Scene {
     private centerX: integer | null = null;
     private centerY: integer | null = null;
     private playerPos: Coordinate = new Coordinate(50,50);
+    private playerSpeed = 2.0;
+    public playerDir = "up";
 
     //for key handling
     private keyboard = Phaser.Input.Keyboard;
@@ -24,8 +27,7 @@ export class MainScene extends Phaser.Scene {
     private rightKey: Phaser.Input.Keyboard.Key | null = null;
     private spaceKey: Phaser.Input.Keyboard.Key | null = null;
 
-    private controls: Phaser.Cameras.Controls.SmoothedKeyControl | null = null;
-
+    //private playerSprite = new GameObjects.Sprite(this, 0,0,'');
 
     constructor() {
         super({
@@ -106,11 +108,25 @@ export class MainScene extends Phaser.Scene {
             maxSpeed: 0.7
         };   
 
-        this.controls = new Phaser.Cameras.Controls.SmoothedKeyControl(controlConfig);
-
         this.cameras.main.zoom = 0.2;
     }
     
+
+    moveUp() {
+        this.playerPos.y -= this.playerSpeed;
+    }
+
+    moveDown() {
+        this.playerPos.y += this.playerSpeed;
+    }
+
+    moveLeft() {
+        this.playerPos.x -= this.playerSpeed;
+    }
+    moveRight() {
+        this.playerPos.x += this.playerSpeed;
+    }
+
     update(time: number, delta: number) {
         
         let oldPlayerPos = new Coordinate(this.playerPos.x,this.playerPos.y);
@@ -133,6 +149,28 @@ export class MainScene extends Phaser.Scene {
             this.playerPos.x++;
             moved = true;
         }
+            
+        /*
+        var newDir = "";
+        var dY = 0, dX = 0;
+        //handle keyboard input
+        if(this.downKey?.isDown) {
+            newDir = "north";
+            dY = -1;
+        }
+        if(this.upKey?.isDown) {
+            newDir = "south";
+            dY = 1;
+        }
+        if(this.leftKey?.isDown) {
+            newDir += "west";
+            dX = -1;
+        }
+        if(this.rightKey?.isDown) {
+            newDir += "east";
+            dX = 1;
+        }
+        */
 
         //update player //todo obviously should be proper movement checking and such
         if(moved) {
