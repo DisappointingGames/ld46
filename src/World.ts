@@ -43,6 +43,18 @@ export class World {
         return this.cells[c.x][c.y];
     }
 
+    coordinates(): Array<Coordinate> {
+        let coordinates = new Array<Coordinate>();
+        for (let i = 0; i < this.width; i++) {            
+            for (let j = 0; j < this.height; j++) {
+                coordinates.push(
+                    new Coordinate(i,j)
+                );                
+            }                   
+        }
+        return coordinates;
+    }
+
     /**
      * generate emergency event at random location in world
      */

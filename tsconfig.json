@@ -12,7 +12,8 @@
       "strictNullChecks": true,
       "strict": true,
       "alwaysStrict": true,
-      "sourceMap": true
+      "sourceMap": true,
+      "mapRoot": "build"
   }
   
 }
