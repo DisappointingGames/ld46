@@ -1,5 +1,5 @@
 import { World } from "../World";
-import { Scene, GameObjects } from "phaser";
+import { Scene, GameObjects, Time } from "phaser";
 import { Coordinate } from "../Coordinate";
 import { CellType } from "../CellType";
 import { Cell } from "../Cell";
@@ -8,10 +8,11 @@ import { MoveType } from "../MoveType";
 //Player sprite, if we want to change it between scenes
 export class MainScene extends Phaser.Scene {
 
+
     //just putting the world in here too, refactor later back to separate class
-    private world: Array<Array<Tile>> | null = null;
-    private worldWidth: integer | null = null;
-    private worldHeight: integer | null = null;
+    private world: Array<Array<Tile>> = [];
+    private worldWidth: integer;
+    private worldHeight: integer;
     private tileWidthHalf: integer | null = null;
     private tileHeightHalf: integer | null = null;
     private centerX: integer | null = null;
@@ -30,10 +31,15 @@ export class MainScene extends Phaser.Scene {
 
     //private playerSprite = new GameObjects.Sprite(this, 0,0,'');
 
+    private crashTimer : Time.TimerEvent | null = null;
     constructor() {
         super({
-            key: "MainScene"
+            key: "MainScene", 
+            mapAdd: {time: "time"}
         });
+
+        this.worldHeight = 42;
+        this.worldWidth = 42;
 
     }
 
@@ -46,6 +52,8 @@ export class MainScene extends Phaser.Scene {
     }
 
     create(): void {
+        
+        this.crashTimer = this.time.addEvent({delay: 1000, paused: true, callback : this.createEmergency, loop : true});
         //set camera
         this.cameras.main.setViewport(0, 0, 1024, 800);
         this.cameras.main.setScroll(42, 42);
@@ -105,7 +113,9 @@ export class MainScene extends Phaser.Scene {
             maxSpeed: 0.7
         };
 
+
         this.cameras.main.zoom = 0.2;
+        this.crashTimer.paused = false;
     }
 
 
@@ -331,6 +341,29 @@ export class MainScene extends Phaser.Scene {
         return MoveType.Illegal; //catching the "should never happen" ase
     }
 
+    createEmergency()
+    {
+        //var x = Phaser.Math.Between(0, this.worldWidth-1);
+        //var y = Phaser.Math.Between(0, this.worldHeight-1);
+        //Above were not working, so I hardcoded the numbers for now
+        var x = Math.floor(Math.random()* (42.0) + 0);
+        var y = Math.floor(Math.random()* (42.0) + 0);
+        if(/*this.cellIsWorkingServer(x,y)*/true)
+        {
+            this.world![x][y].setTileType('brokenServerTile');
+            console.log("Broke server at (%d, %d)", x, y);
+            
+        }
+        else
+        {
+            /* We missed? Player lucky or just find the nearest working server and break that? */
+            console.log("Missed! (%d, %d)", x, y);
+        }
+    }
+
+    cellIsWorkingServer(x: integer, y: integer): Boolean {
+        return this.world![x][y].getTileType() === 'serverTile';
+    }
     outOfBounds(x: integer, y: integer): Boolean {
         return x < 0 || y < 0 || x >= this.worldWidth! || y >= this.worldHeight!;
     }
@@ -338,6 +371,7 @@ export class MainScene extends Phaser.Scene {
     cellEmpty(x: integer, y: integer): Boolean {
         return this.world![x][y].getTileType() === 'emptyTile';
     }
+
 }
 
 class Tile extends Phaser.GameObjects.Image {
