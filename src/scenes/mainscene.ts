@@ -11,6 +11,6 @@ export class MainScene extends Phaser.Scene {
     }
 
     create(): void {
-        this.add.text(256 + 64, 256 + 128, "This is the main screen for the game").setScale(1);
+        this.add.text(256 + 64, 256 + 128, "Go find the server and fix it").setScale(1);
     }
 }
