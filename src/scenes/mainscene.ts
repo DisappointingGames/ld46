@@ -10,8 +10,6 @@ export class MainScene extends Phaser.Scene {
     private readonly tileHeightHalf = 50
     private readonly centerX = (this.worldWidth / 2) * this.tileWidthHalf
     private readonly centerY = (this.worldHeight / 2) * this.tileHeightHalf;
-    private playerPos: Coordinate = new Coordinate(50, 50);
-    private playerSpeed = 2.0;
 
     //for key handling
     private keyboard = Phaser.Input.Keyboard;
@@ -23,6 +21,12 @@ export class MainScene extends Phaser.Scene {
 
     //for player movement and animation 
     private player: any;
+    private dX: integer = 0;
+    private dY: integer = 0;
+    private facing: string = "south";
+    private playerPos: Coordinate = new Coordinate(0, 0);//this is the position in "tile coords"
+    private playerMapPos: Coordinate = new Coordinate(0, 0);//this is the position in "screen coords"
+    private playerSpeed = 2.0;
 
     //private playerSprite = new GameObjects.Sprite(this, 0,0,'');
 
@@ -47,7 +51,6 @@ export class MainScene extends Phaser.Scene {
         this.load.image("playerTile", 'assets/graphics/player_tile.png')
         this.load.image("serverTile", '/assets/graphics/server.png')
         this.load.image("brokenServerTile", 'assets/graphics/server.png');
-        this.load.spritesheet('dude', 'assets/graphics/dude.png', spritesheetconfig);
     }
 
     create(): void {
@@ -81,8 +84,8 @@ export class MainScene extends Phaser.Scene {
         }
 
         //this player tile is just for testing the game logic until we have a player done
-        this.addPlayer();
         this.playerPos = new Coordinate(21, 21);
+        this.playerMapPos = this.getWorldToScreenCoords(this.playerPos);
         let playerTile = this.world[this.playerPos.x][this.playerPos.y];
         playerTile.setTileType(TileType.PLAYER_TILE)
 
@@ -103,19 +106,6 @@ export class MainScene extends Phaser.Scene {
         this.cameras.main.zoom = 0.2;
     }
 
-    addPlayer(): void {
-        this.player = this.add.sprite(1100, 1000, 'dude')
-        this.player.setScale(3, 3)
-        let walk = this.anims.create({
-            key: 'manimation',
-            frames: this.anims.generateFrameNames('dude', { start: 0, end: 4 }),
-            frameRate: 10,
-            repeat: Phaser.FOREVER
-        })
-        this.player.anims.play('manimation');
-    }
-
-
     moveUp() {
         this.playerPos.y -= this.playerSpeed;
     }
@@ -132,6 +122,28 @@ export class MainScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
+        this.detectKeyInput();
+        //TODO animations
+        /*
+        if (this.dY == 0 && this.dX == 0)
+        {
+            this.player.animations.stop();
+            this.player.animations.currentAnim.frame=0;
+        }else{
+            if(this.player.animations.currentAnim!=this.facing){
+                this.player.animations.play(this.acing);
+            }
+        }*/
+
+        //TODO connect to game logic for tiles
+        this.playerMapPos.x += this.playerSpeed * this.dX;
+        this.playerMapPos.y += this.playerSpeed * this.dY;
+        //get the new player map tile
+        let targetPosition = this.getScreenToWorldCoords(this.playerMapPos);
+        //TODO now connect this new potential coordinate to the existing logic.
+        console.log("targetPosition: " + targetPosition);
+
+
         //game logic for player and server movements
         let oldPlayerPos = new Coordinate(this.playerPos.x, this.playerPos.y);
         let moved = false;
@@ -148,7 +160,7 @@ export class MainScene extends Phaser.Scene {
             }
         }
         if (this.keyboard.JustDown(this.upKey!)) {
-            moveType = this.getMoveType(Dir.UP, isSpaceDown , this.playerPos.x, this.playerPos.y - 1);
+            moveType = this.getMoveType(Dir.UP, isSpaceDown, this.playerPos.x, this.playerPos.y - 1);
             if (moveType != MoveType.Illegal) {
                 this.playerPos.y--;
                 moved = true;
@@ -240,6 +252,15 @@ export class MainScene extends Phaser.Scene {
         );
     }
 
+    getScreenToWorldCoords(c: Coordinate): Coordinate {
+        //I'm on cocaine
+        let x = Math.floor((((c.x - this.centerX) / this.tileWidthHalf) + ((c.y - this.centerY) / this.tileHeightHalf))/2);
+        return new Coordinate(
+            x,
+            Math.floor((c.y-this.centerY)/this.tileHeightHalf) - x
+        );
+    }
+
     getMoveType(direction: string, pulling: boolean, targetX: integer, targetY: integer): MoveType {
         //first check out of bounds   
         if (this.outOfBounds(targetX, targetY)) {
@@ -313,6 +334,60 @@ export class MainScene extends Phaser.Scene {
 
     cellEmpty(x: integer, y: integer): Boolean {
         return this.world![x][y].getTileType() === TileType.EMPTY_TILE;
+    }
+
+    detectKeyInput(): void {//assign direction for character & set x,y speed components
+        if (this.upKey?.isDown) {
+            this.dY = -1;
+        }
+        else if (this.downKey?.isDown) {
+            this.dY = 1;
+        }
+        else {
+            this.dY = 0;
+        }
+        if (this.rightKey?.isDown) {
+            this.dX = 1;
+            if (this.dY == 0) {
+                this.facing = "east";
+            }
+            else if (this.dY == 1) {
+                this.facing = "southeast";
+                this.dX = this.dY = 0.5;
+            }
+            else {
+                this.facing = "northeast";
+                this.dX = 0.5;
+                this.dY = -0.5;
+            }
+        }
+        else if (this.leftKey?.isDown) {
+            this.dX = -1;
+            if (this.dY == 0) {
+                this.facing = "west";
+            }
+            else if (this.dY == 1) {
+                this.facing = "southwest";
+                this.dY = 0.5;
+                this.dX = -0.5;
+            }
+            else {
+                this.facing = "northwest";
+                this.dX = this.dY = -0.5;
+            }
+        }
+        else {
+            this.dX = 0;
+            if (this.dY == 0) {
+                //facing="west";
+            }
+            else if (this.dY == 1) {
+                this.facing = "south";
+            }
+            else {
+                this.facing = "north";
+            }
+        }
     }
 }
 
