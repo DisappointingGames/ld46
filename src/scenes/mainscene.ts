@@ -200,7 +200,7 @@ export class MainScene extends Phaser.Scene {
                 this.world![oldPlayerPos!.x - 2][oldPlayerPos!.y].setTileType(oldType);
                 this.world![oldPlayerPos!.x - 2][oldPlayerPos!.y].setTexture(oldType);
             }
-            if (moveType == MoveType.PushRight) {                
+            if (moveType == MoveType.PushRight) {
                 let oldType = this.world![oldPlayerPos!.x + 1][oldPlayerPos!.y].getTileType();
                 this.world![oldPlayerPos!.x + 2][oldPlayerPos!.y].setTileType(oldType);
                 this.world![oldPlayerPos!.x + 2][oldPlayerPos!.y].setTexture(oldType);
@@ -208,51 +208,48 @@ export class MainScene extends Phaser.Scene {
 
             //if pull, we have to clear its old position and put the server where the player was
             if (moveType == MoveType.PullDown) {
-                let oldType = this.world![oldPlayerPos!.x][oldPlayerPos!.y - 1].getData('tileType');
-                this.world![oldPlayerPos!.x][oldPlayerPos!.y].setData('tileType', oldType);
+                let oldType = this.world![oldPlayerPos!.x][oldPlayerPos!.y - 1].getTileType();
+                this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTileType(oldType);
                 this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTexture(oldType);
 
-                this.world![oldPlayerPos!.x][oldPlayerPos!.y - 1].setData('tileType', 'emptyTile');
+                this.world![oldPlayerPos!.x][oldPlayerPos!.y - 1].setTileType('emptyTile');
                 this.world![oldPlayerPos!.x][oldPlayerPos!.y - 1].setTexture('emptyTile');
             }
             if (moveType == MoveType.PullUp) {
-                let oldType = this.world![oldPlayerPos!.x][oldPlayerPos!.y + 1].getData('tileType');
-                this.world![oldPlayerPos!.x][oldPlayerPos!.y].setData('tileType', oldType);
+                let oldType = this.world![oldPlayerPos!.x][oldPlayerPos!.y + 1].getTileType();
+                this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTileType(oldType);
                 this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTexture(oldType);
 
-                this.world![oldPlayerPos!.x][oldPlayerPos!.y + 1].setData('tileType', 'emptyTile');
+                this.world![oldPlayerPos!.x][oldPlayerPos!.y + 1].setTileType('emptyTile');
                 this.world![oldPlayerPos!.x][oldPlayerPos!.y + 1].setTexture('emptyTile');
             }
             if (moveType == MoveType.PullLeft) {
-                let oldType = this.world![oldPlayerPos!.x + 1][oldPlayerPos!.y].getData('tileType');
-                this.world![oldPlayerPos!.x][oldPlayerPos!.y].setData('tileType', oldType);
+                let oldType = this.world![oldPlayerPos!.x + 1][oldPlayerPos!.y].getTileType();
+                this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTileType(oldType);
                 this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTexture(oldType);
 
-                this.world![oldPlayerPos!.x + 1][oldPlayerPos!.y].setData('tileType', 'emptyTile');
+                this.world![oldPlayerPos!.x + 1][oldPlayerPos!.y].setTileType('emptyTile');
                 this.world![oldPlayerPos!.x + 1][oldPlayerPos!.y].setTexture('emptyTile');
             }
             if (moveType == MoveType.PullRight) {
-                let oldType = this.world![oldPlayerPos!.x - 1][oldPlayerPos!.y].getData('tileType');
-                this.world![oldPlayerPos!.x][oldPlayerPos!.y].setData('tileType', oldType);
+                let oldType = this.world![oldPlayerPos!.x - 1][oldPlayerPos!.y].getTileType();
+                this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTileType(oldType);
                 this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTexture(oldType);
 
-                this.world![oldPlayerPos!.x - 1][oldPlayerPos!.y].setData('tileType', 'emptyTile');
+                this.world![oldPlayerPos!.x - 1][oldPlayerPos!.y].setTileType('emptyTile');
                 this.world![oldPlayerPos!.x - 1][oldPlayerPos!.y].setTexture('emptyTile');
             }
 
             //if normal step or push, the old pos becomes empty
             if (moveType == MoveType.Step || moveType == MoveType.PushDown || moveType == MoveType.PushUp || moveType == MoveType.PushLeft || moveType == MoveType.PushRight) {
-                this.world![oldPlayerPos!.x][oldPlayerPos!.y].setData('tileType', 'emptyTile');
+                this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTileType('emptyTile');
                 this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTexture('emptyTile');
             }
 
             //regardless, the new player position becomes player tile
             let playerTile = this.world![this.playerPos!.x][this.playerPos!.y];
-            this.world![this.playerPos!.x][this.playerPos!.y].setData('tileType', 'playerTile');
+            this.world![this.playerPos!.x][this.playerPos!.y].setTileType('player');
             this.world![this.playerPos!.x][this.playerPos!.y].setTexture('playerTile');
-
-            this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTileType('emptyTile');
-            this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTexture('emptyTile');
         }
 
         //update camera
