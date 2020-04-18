@@ -1,21 +1,15 @@
-import { World } from "../World";
-import { Scene, GameObjects } from "phaser";
 import { Coordinate } from "../Coordinate";
-import { CellType } from "../CellType";
-import { Cell } from "../Cell";
 import { MoveType } from "../MoveType";
 
-//Player sprite, if we want to change it between scenes
 export class MainScene extends Phaser.Scene {
 
-    //just putting the world in here too, refactor later back to separate class
-    private world: Array<Array<Tile>> = [];
-    private worldWidth: integer | null = null;
-    private worldHeight: integer | null = null;
-    private tileWidthHalf: integer | null = null;
-    private tileHeightHalf: integer | null = null;
-    private centerX: integer | null = null;
-    private centerY: integer | null = null;
+    private readonly world: Array<Array<Tile>> = [];
+    private readonly worldWidth = 42
+    private readonly worldHeight = 42
+    private readonly tileWidthHalf = 88
+    private readonly tileHeightHalf = 50
+    private readonly centerX = (this.worldWidth / 2) * this.tileWidthHalf
+    private readonly centerY = (this.worldHeight / 2) * this.tileHeightHalf;
     private playerPos: Coordinate = new Coordinate(50, 50);
     private playerSpeed = 2.0;
     public playerDir = "up";
@@ -70,16 +64,6 @@ export class MainScene extends Phaser.Scene {
         this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         //initial world building
-        this.worldWidth = 42;
-        this.worldHeight = 42;
-
-        this.tileWidthHalf = 88;
-        this.tileHeightHalf = 50;
-
-        this.centerX = (this.worldWidth / 2) * this.tileWidthHalf;
-        this.centerY = (this.worldHeight / 2) * this.tileHeightHalf;
-
-        this.world = [];
         for (let i = 0; i < this.worldWidth; i++) {
             let inner = [];
             for (let j = 0; j < this.worldHeight; j++) {
@@ -97,12 +81,11 @@ export class MainScene extends Phaser.Scene {
             this.world.push(inner);
         }
 
-        //todo init player
         //this player tile is just for testing the game logic until we have a player done
         this.addPlayer();
         this.playerPos = new Coordinate(21, 21);
         let playerTile = this.world[this.playerPos.x][this.playerPos.y];
-        this.world[this.playerPos.x][this.playerPos.y].setTexture('playerTile');
+        playerTile.setTexture('playerTile');
 
         let cursors = this.input.keyboard.createCursorKeys();
 
@@ -156,58 +139,38 @@ export class MainScene extends Phaser.Scene {
         let oldPlayerPos = new Coordinate(this.playerPos.x, this.playerPos.y);
         let moved = false;
 
+        let isSpaceDown = this.spaceKey!.isDown
+
         //handle keyboard input
         let moveType;
         if (this.keyboard.JustDown(this.downKey!)) {
-            moveType = this.getMoveType('down', this.spaceKey?.isDown!, this.playerPos.x, this.playerPos.y + 1);
+            moveType = this.getMoveType('down', isSpaceDown, this.playerPos.x, this.playerPos.y + 1);
             if (moveType != MoveType.Illegal) {
                 this.playerPos.y++;
                 moved = true;
             }
         }
         if (this.keyboard.JustDown(this.upKey!)) {
-            moveType = this.getMoveType('up', this.spaceKey?.isDown!, this.playerPos.x, this.playerPos.y - 1);
+            moveType = this.getMoveType('up', isSpaceDown , this.playerPos.x, this.playerPos.y - 1);
             if (moveType != MoveType.Illegal) {
                 this.playerPos.y--;
                 moved = true;
             }
         }
         if (this.keyboard.JustDown(this.leftKey!)) {
-            moveType = this.getMoveType('left', this.spaceKey?.isDown!, this.playerPos.x - 1, this.playerPos.y);
+            moveType = this.getMoveType('left', isSpaceDown, this.playerPos.x - 1, this.playerPos.y);
             if (moveType != MoveType.Illegal) {
                 this.playerPos.x--;
                 moved = true;
             }
         }
         if (this.keyboard.JustDown(this.rightKey!)) {
-            moveType = this.getMoveType('right', this.spaceKey?.isDown!, this.playerPos.x + 1, this.playerPos.y);
+            moveType = this.getMoveType('right', isSpaceDown, this.playerPos.x + 1, this.playerPos.y);
             if (moveType != MoveType.Illegal) {
                 this.playerPos.x++;
                 moved = true;
             }
         }
-
-        /*
-        var newDir = "";
-        var dY = 0, dX = 0;
-        //handle keyboard input
-        if(this.downKey?.isDown) {
-            newDir = "north";
-            dY = -1;
-        }
-        if(this.upKey?.isDown) {
-            newDir = "south";
-            dY = 1;
-        }
-        if(this.leftKey?.isDown) {
-            newDir += "west";
-            dX = -1;
-        }
-        if(this.rightKey?.isDown) {
-            newDir += "east";
-            dX = 1;
-        }
-        */
 
         //update player //todo obviously should be proper movement checking and such
         if (moved) {
@@ -265,7 +228,7 @@ export class MainScene extends Phaser.Scene {
 
             //regardless, the new player position becomes player tile
             let playerTile = this.world[this.playerPos!.x][this.playerPos!.y];
-            this.world[this.playerPos!.x][this.playerPos!.y].setTileType('playerTile');
+            playerTile.setTileType('playerTile');
         }
 
         //update camera
