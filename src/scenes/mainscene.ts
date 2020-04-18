@@ -40,9 +40,9 @@ export class MainScene extends Phaser.Scene {
 
     // noinspection JSUnusedGlobalSymbols
     preload(): void {
-        this.load.image("emptyTile", 'assets/graphics/server_trimmed.png')
-        this.load.image("serverTile", '/assets/graphics/server_trimmed.png')
-        this.load.image("brokenServerTile", 'assets/graphics/server_trimmed.png');
+        this.load.image("emptyTile", 'assets/graphics/empty_tile.png')
+        this.load.image("serverTile", '/assets/graphics/server.png')
+        this.load.image("brokenServerTile", 'assets/graphics/server.png');
     }
 
     create(): void {
@@ -61,7 +61,7 @@ export class MainScene extends Phaser.Scene {
         this.worldHeight = 100;
 
         this.tileWidthHalf = 88;
-        this.tileHeightHalf = 150;
+        this.tileHeightHalf = 50;
 
         this.centerX = (this.worldWidth / 2) * this.tileWidthHalf;
         this.centerY = -100;
@@ -72,7 +72,7 @@ export class MainScene extends Phaser.Scene {
                 let tx = (i - j) * this.tileWidthHalf;
                 let ty = (i + j) * this.tileHeightHalf;
 
-                let tileType = (i%3==0 && j%3==0) ? 'serverTile' : 'emptyTile';
+                let tileType = (Math.random() < 0.42) ? 'serverTile' : 'emptyTile';
                 let tile = this.add.image(this.centerX + tx, this.centerY + ty, tileType);
 
                 tile.setData('row', i);
