@@ -69,7 +69,7 @@ export class MainScene extends Phaser.Scene {
             for (let j = 0; j < this.worldHeight; j++) {
                 let tc = this.getWorldToScreenCoords(new Coordinate(i, j));
 
-                let tileType = (Math.random() < 0.24) ? 'serverTile' : 'emptyTile';
+                let tileType = (Math.random() < 0.24) ? TileType.SERVER_TILE : TileType.EMPTY_TILE;
 
                 let tile = new Tile(this, tc.x, tc.y, tileType, tileType, i, j);
                 this.add.existing(tile);
@@ -85,7 +85,7 @@ export class MainScene extends Phaser.Scene {
         this.addPlayer();
         this.playerPos = new Coordinate(21, 21);
         let playerTile = this.world[this.playerPos.x][this.playerPos.y];
-        playerTile.setTexture('playerTile');
+        playerTile.setTileType(TileType.PLAYER_TILE)
 
         let cursors = this.input.keyboard.createCursorKeys();
 
@@ -144,28 +144,28 @@ export class MainScene extends Phaser.Scene {
         //handle keyboard input
         let moveType;
         if (this.keyboard.JustDown(this.downKey!)) {
-            moveType = this.getMoveType('down', isSpaceDown, this.playerPos.x, this.playerPos.y + 1);
+            moveType = this.getMoveType(Dir.DOWN, isSpaceDown, this.playerPos.x, this.playerPos.y + 1);
             if (moveType != MoveType.Illegal) {
                 this.playerPos.y++;
                 moved = true;
             }
         }
         if (this.keyboard.JustDown(this.upKey!)) {
-            moveType = this.getMoveType('up', isSpaceDown , this.playerPos.x, this.playerPos.y - 1);
+            moveType = this.getMoveType(Dir.UP, isSpaceDown , this.playerPos.x, this.playerPos.y - 1);
             if (moveType != MoveType.Illegal) {
                 this.playerPos.y--;
                 moved = true;
             }
         }
         if (this.keyboard.JustDown(this.leftKey!)) {
-            moveType = this.getMoveType('left', isSpaceDown, this.playerPos.x - 1, this.playerPos.y);
+            moveType = this.getMoveType(Dir.LEFT, isSpaceDown, this.playerPos.x - 1, this.playerPos.y);
             if (moveType != MoveType.Illegal) {
                 this.playerPos.x--;
                 moved = true;
             }
         }
         if (this.keyboard.JustDown(this.rightKey!)) {
-            moveType = this.getMoveType('right', isSpaceDown, this.playerPos.x + 1, this.playerPos.y);
+            moveType = this.getMoveType(Dir.RIGHT, isSpaceDown, this.playerPos.x + 1, this.playerPos.y);
             if (moveType != MoveType.Illegal) {
                 this.playerPos.x++;
                 moved = true;
@@ -228,7 +228,7 @@ export class MainScene extends Phaser.Scene {
 
             //regardless, the new player position becomes player tile
             let playerTile = this.world[this.playerPos!.x][this.playerPos!.y];
-            playerTile.setTileType('playerTile');
+            playerTile.setTileType(TileType.PLAYER_TILE);
         }
 
         //update camera
@@ -253,25 +253,25 @@ export class MainScene extends Phaser.Scene {
         if (this.cellEmpty(targetX, targetY)) {
             if (pulling) {
                 switch (direction) {
-                    case 'down':
+                    case Dir.DOWN:
                         if (!this.outOfBounds(targetX, targetY - 2) && !this.cellEmpty(targetX, targetY - 2)) {
                             return MoveType.PullDown;
                         }
                         break;
 
-                    case 'up':
+                    case Dir.UP:
                         if (!this.outOfBounds(targetX, targetY + 2) && !this.cellEmpty(targetX, targetY + 2)) {
                             return MoveType.PullUp;
                         }
                         break;
 
-                    case 'left':
+                    case Dir.LEFT:
                         if (!this.outOfBounds(targetX + 2, targetY) && !this.cellEmpty(targetX + 2, targetY)) {
                             return MoveType.PullLeft;
                         }
                         break;
 
-                    case 'right':
+                    case Dir.RIGHT:
                         if (!this.outOfBounds(targetX - 2, targetY) && !this.cellEmpty(targetX - 2, targetY)) {
                             return MoveType.PullRight;
                         }
@@ -285,22 +285,22 @@ export class MainScene extends Phaser.Scene {
 
         //now we know that the target cell is not empty, so we have to check if we can push
         switch (direction) {
-            case 'down':
+            case Dir.DOWN:
                 if (!this.outOfBounds(targetX, targetY + 1) && this.cellEmpty(targetX, targetY + 1)) {
                     return MoveType.PushDown;
                 }
                 break;
-            case 'up':
+            case Dir.UP:
                 if (!this.outOfBounds(targetX, targetY - 1) && this.cellEmpty(targetX, targetY - 1)) {
                     return MoveType.PushUp;
                 }
                 break;
-            case 'left':
+            case Dir.LEFT:
                 if (!this.outOfBounds(targetX - 1, targetY) && this.cellEmpty(targetX - 1, targetY)) {
                     return MoveType.PushLeft;
                 }
                 break;
-            case 'right':
+            case Dir.RIGHT:
                 if (!this.outOfBounds(targetX + 1, targetY) && this.cellEmpty(targetX + 1, targetY)) {
                     return MoveType.PushRight;
                 }
@@ -315,25 +315,25 @@ export class MainScene extends Phaser.Scene {
     }
 
     cellEmpty(x: integer, y: integer): Boolean {
-        return this.world![x][y].getTileType() === 'emptyTile';
+        return this.world![x][y].getTileType() === TileType.EMPTY_TILE;
     }
 }
 
 
 class Tile extends Phaser.GameObjects.Image {
 
-    private tileType: string
+    private tileType: TileType
     public readonly row: number
     public readonly col: number
 
-    constructor(scene: Phaser.Scene, x: number, y: number, texture: string, tileType: string, row: number, col: number, frame?: string | integer) {
+    constructor(scene: Phaser.Scene, x: number, y: number, texture: string, tileType: TileType, row: number, col: number, frame?: string | integer) {
         super(scene, x, y, texture, frame)
         this.tileType = tileType
         this.row = row
         this.col = col
     }
 
-    setTileType(tileType: string) {
+    setTileType(tileType: TileType) {
         this.tileType = tileType
         this.setTexture(tileType)
     }
@@ -343,8 +343,19 @@ class Tile extends Phaser.GameObjects.Image {
     }
 
     empty() {
-        this.setTileType("emptyTile")
+        this.setTileType(TileType.EMPTY_TILE)
     }
-
 }
 
+const enum TileType {
+    EMPTY_TILE = "emptyTile",
+    PLAYER_TILE = "playerTile",
+    SERVER_TILE = "serverTile"
+}
+
+const enum Dir {
+    UP = "up",
+    DOWN = "down",
+    LEFT = "left",
+    RIGHT = "right"
+}
