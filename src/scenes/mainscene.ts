@@ -218,68 +218,54 @@ export class MainScene extends Phaser.Scene {
             if (moveType == MoveType.PushDown) {
                 let oldType = this.world[x][y + 1].getTileType();
                 this.world[x][y + 2].setTileType(oldType);
-                this.world[x][y + 2].setTexture(oldType);
             }
             if (moveType == MoveType.PushUp) {
                 let oldType = this.world[x][y - 1].getTileType();
                 this.world[x][y - 2].setTileType(oldType);
-                this.world[x][y - 2].setTexture(oldType);
             }
             if (moveType == MoveType.PushLeft) {
                 let oldType = this.world[x - 1][y].getTileType();
                 this.world[x - 2][y].setTileType(oldType);
-                this.world[x - 2][y].setTexture(oldType);
             }
             if (moveType == MoveType.PushRight) {
                 let oldType = this.world[x + 1][y].getTileType();
                 this.world[x + 2][y].setTileType(oldType);
-                this.world[x + 2][y].setTexture(oldType);
             }
 
             //if pull, we have to clear its old position and put the server where the player was
             if (moveType == MoveType.PullDown) {
                 let oldType = this.world[x][y - 1].getTileType();
                 this.world[x][y].setTileType(oldType);
-                this.world[x][y].setTexture(oldType);
 
-                this.world[x][y - 1].setTileType('emptyTile');
-                this.world[x][y - 1].setTexture('emptyTile');
+                this.world[x][y - 1].empty()
             }
             if (moveType == MoveType.PullUp) {
                 let oldType = this.world[x][y + 1].getTileType();
                 this.world[x][y].setTileType(oldType);
-                this.world[x][y].setTexture(oldType);
 
-                this.world[x][y + 1].setTileType('emptyTile');
-                this.world[x][y + 1].setTexture('emptyTile');
+                this.world[x][y + 1].empty()
             }
             if (moveType == MoveType.PullLeft) {
                 let oldType = this.world[x + 1][y].getTileType();
                 this.world[x][y].setTileType(oldType);
-                this.world[x][y].setTexture(oldType);
 
-                this.world[x + 1][y].setTileType('emptyTile');
-                this.world[x + 1][y].setTexture('emptyTile');
+                this.world[x + 1][y].empty()
             }
             if (moveType == MoveType.PullRight) {
                 let oldType = this.world[x - 1][y].getTileType();
                 this.world[x][y].setTileType(oldType);
-                this.world[x][y].setTexture(oldType);
 
-                this.world[x - 1][y].setTileType('emptyTile');
-                this.world[x - 1][y].setTexture('emptyTile');
+                this.world[x - 1][y].empty()
             }
 
             //if normal step or push, the old pos becomes empty
             if (moveType == MoveType.Step || moveType == MoveType.PushDown || moveType == MoveType.PushUp || moveType == MoveType.PushLeft || moveType == MoveType.PushRight) {
-                this.world[x][y].setTileType('emptyTile');
-                this.world[x][y].setTexture('emptyTile');
+                this.world[x][y].empty()
             }
 
             //regardless, the new player position becomes player tile
             let playerTile = this.world[this.playerPos!.x][this.playerPos!.y];
-            this.world[this.playerPos!.x][this.playerPos!.y].setTileType('player');
-            this.world[this.playerPos!.x][this.playerPos!.y].setTexture('playerTile');
+            this.world[this.playerPos!.x][this.playerPos!.y].setTileType('playerTile');
         }
 
         //update camera
@@ -386,10 +372,15 @@ class Tile extends Phaser.GameObjects.Image {
 
     setTileType(tileType: string) {
         this.tileType = tileType
+        this.setTexture(tileType)
     }
 
     getTileType() {
         return this.tileType
+    }
+
+    empty() {
+        this.setTileType("emptyTile")
     }
 
 }
