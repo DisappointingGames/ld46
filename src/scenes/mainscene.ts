@@ -24,10 +24,6 @@ export class MainScene extends Phaser.Scene {
     private rightKey: Phaser.Input.Keyboard.Key | null = null;
     private spaceKey: Phaser.Input.Keyboard.Key | null = null;
 
-    //just for testing, later should depend on player position
-    private camerapos = new Coordinate(100,100);
-
-    private borderOffset = new Coordinate(250,50);//to centralise the isometric level display
     private controls: Phaser.Cameras.Controls.SmoothedKeyControl | null = null;
 
 
@@ -48,6 +44,7 @@ export class MainScene extends Phaser.Scene {
 
     create(): void {
         //set camera
+        this.cameras.main.setViewport(0,0,1024,800);
         this.cameras.main.setScroll(42,42);
 
         //define keyboard input
@@ -65,30 +62,24 @@ export class MainScene extends Phaser.Scene {
         this.tileHeightHalf = 50;
 
         this.centerX = (this.worldWidth / 2) * this.tileWidthHalf;
-        this.centerY = -100;
+        this.centerY = (this.worldHeight / 2) * this.tileHeightHalf;
 
         this.world = new Array();
         for (let i = 0; i < this.worldWidth; i++) {
             let inner = new Array();
             for (let j = 0; j < this.worldHeight; j++) {
-                let tx = (i - j) * this.tileWidthHalf;
-                let ty = (i + j) * this.tileHeightHalf;
+                let tc = this.getWorldToScreenCoords(new Coordinate(i, j));
 
                 let tileType = (Math.random() < 0.42) ? 'serverTile' : 'emptyTile';
 
-                let drawx = this.centerX + tx;
-                let drawy = this.centerY + ty;
-                let tile = this.add.image(drawx, drawy, tileType);
+                let tile = this.add.image(tc.x, tc.y, tileType);
 
                 tile.setData('tileType', tileType);
 
                 tile.setData('row', i);
                 tile.setData('col', j);
 
-                tile.setData('drawX', drawx);
-                tile.setData('drawY', drawy);
-
-                tile.setDepth(this.centerY + ty);
+                tile.setDepth(this.centerY + tc.y);
 
                 inner.push(tile);
             }
@@ -97,7 +88,7 @@ export class MainScene extends Phaser.Scene {
 
         //todo init player
         //this player tile is just for testing the game logic until we have a player done
-        this.playerPos = new Coordinate(41,41);
+        this.playerPos = new Coordinate(21,21);
         let playerTile = this.world[this.playerPos.x][this.playerPos.y];
         this.world[this.playerPos.x][this.playerPos.y].setTexture('playerTile');
 
@@ -118,32 +109,48 @@ export class MainScene extends Phaser.Scene {
         this.controls = new Phaser.Cameras.Controls.SmoothedKeyControl(controlConfig);
 
         this.cameras.main.zoom = 0.2;
-        this.cameras.main.setScroll(this.playerPos.x * this.tileWidthHalf,this.playerPos.y*this.tileHeightHalf)
-       
-        
     }
     
     update(time: number, delta: number) {
         
-        this.controls?.update(delta);
-        
+        let oldPlayerPos = new Coordinate(this.playerPos.x,this.playerPos.y);
+        let moved = false;
+
         //handle keyboard input
-        if(this.downKey?.isDown) {
+        if(this.keyboard.JustDown(this.downKey!)) {
             this.playerPos.y++;
+            moved = true;
         }
-        if(this.upKey?.isDown) {
+        if(this.keyboard.JustDown(this.upKey!)) {
             this.playerPos.y--;
+            moved = true;
         }
-        if(this.leftKey?.isDown) {
-            this.playerPos.x++;
-        }
-        if(this.rightKey?.isDown) {
+        if(this.keyboard.JustDown(this.leftKey!)) {
             this.playerPos.x--;
+            moved = true;
+        }
+        if(this.keyboard.JustDown(this.rightKey!)) {
+            this.playerPos.x++;
+            moved = true;
         }
 
-        console.log(this.cameras.main.zoom);
+        //update player //todo obviously should be proper movement checking and such
+        if(moved) {
+            let playerTile = this.world![this.playerPos!.x][this.playerPos!.y];
+            this.world![this.playerPos!.x][this.playerPos!.y].setTexture('playerTile');
+            this.world![oldPlayerPos!.x][oldPlayerPos!.y].setTexture('emptyTile');
+        }
 
+        //update camera
+        let cameraCenter = this.getWorldToScreenCoords(this.playerPos);
+        this.cameras.main.setScroll(cameraCenter.x, cameraCenter.y);
     }
 
+    getWorldToScreenCoords(c:Coordinate):Coordinate {
+        return new Coordinate(
+            (c.x - c.y) * this.tileWidthHalf! + this.centerX!,
+            (c.x + c.y) * this.tileHeightHalf! + this.centerY!
+        );
+    }
 }
 
