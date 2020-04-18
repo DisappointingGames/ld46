@@ -27,7 +27,10 @@ export class MainScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        this.renderers.worldRenderer.render(this, this.gameState.world)
+        if (this.gameState.hasWorldChanged) {
+            this.renderers.worldRenderer.render(this, this.gameState.world)
+            this.gameState.hasWorldChanged = false
+        }
     }
 }
 
@@ -41,6 +44,7 @@ class Renderers {
 
 class GameState {
     public readonly world: World
+    public hasWorldChanged = true
 
     constructor(world: World) {
         this.world = world
