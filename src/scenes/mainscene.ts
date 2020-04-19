@@ -6,8 +6,8 @@ import { MoveType } from "../MoveType";
 export class MainScene extends Phaser.Scene {
 
     private readonly world: Array<Array<Tile>> = [];
-    private readonly worldWidth = 42
-    private readonly worldHeight = 42
+    private readonly worldWidth: integer = 10
+    private readonly worldHeight: integer = 10
     private readonly tileWidthHalf = 88
     private readonly tileHeightHalf = 50
     private readonly centerX = (this.worldWidth / 2) * this.tileWidthHalf
@@ -32,24 +32,18 @@ export class MainScene extends Phaser.Scene {
 
     //private playerSprite = new GameObjects.Sprite(this, 0,0,'');
 
-    private crashTimer : Time.TimerEvent | null = null;
+    private crashTimer: Time.TimerEvent | null = null;
     constructor() {
         super({
-            key: "MainScene", 
-            mapAdd: {time: "time"}
+            key: "MainScene",
+            mapAdd: { time: "time" }
         });
-
-        this.worldHeight = 42;
-        this.worldWidth = 42;
-
     }
 
     // noinspection JSUnusedGlobalSymbols
     preload(): void {
         this.load.image("emptyTile", 'assets/graphics/empty_tile.png')
         this.load.image("playerTile", 'assets/graphics/player_tile.png')
-        //this.load.image("serverTile", '/assets/graphics/server.png')
-        //this.load.image("brokenServerTile", 'assets/graphics/server.png');
         let spritesheetconfig = {
             frameWidth: 176,
             frameHeight: 300,
@@ -63,8 +57,8 @@ export class MainScene extends Phaser.Scene {
     }
 
     create(): void {
-        
-        this.crashTimer = this.time.addEvent({delay: 1000, paused: true, callback : this.createEmergency, loop : true});
+        this.crashTimer = this.time.addEvent({ delay: 1000, paused: true, callback: this.createEmergency, callbackScope: this, loop: true });
+
         //set camera
         this.cameras.main.setViewport(0, 0, 1024, 800);
         this.cameras.main.setScroll(42, 42);
@@ -78,14 +72,14 @@ export class MainScene extends Phaser.Scene {
 
         //blinking
         this.anims.create({
-            key: 'serverBlinking',            
-            frames: this.anims.generateFrameNames('serverTile', {start: 0, end: 14}),
+            key: 'serverBlinking',
+            frames: this.anims.generateFrameNames('serverTile', { start: 0, end: 14 }),
             frameRate: 6,
             repeat: Phaser.FOREVER
         })
         this.anims.create({
-            key: 'brokenServerBlinking',            
-            frames: this.anims.generateFrameNames('brokenServerTile', {start: 0, end: 14}),
+            key: 'brokenServerBlinking',
+            frames: this.anims.generateFrameNames('brokenServerTile', { start: 0, end: 14 }),
             frameRate: 6,
             repeat: Phaser.FOREVER
         })
@@ -99,7 +93,7 @@ export class MainScene extends Phaser.Scene {
                 let tileType = (Math.random() < 0.24) ? TileType.SERVER_TILE : TileType.EMPTY_TILE;
 
                 let tile = new Tile(this, tc.x, tc.y, tileType, tileType, i, j);
-                                
+
                 tile.setTileType(tileType);//for blinking
                 this.add.existing(tile);
 
@@ -111,27 +105,14 @@ export class MainScene extends Phaser.Scene {
         }
 
         //this player tile is just for testing the game logic until we have a player done
-        this.playerPos = new Coordinate(21, 21);
+        this.playerPos = new Coordinate(this.worldWidth / 2, this.worldHeight / 2);
         this.playerMapPos = this.getWorldToScreenCoords(this.playerPos);
         let playerTile = this.world[this.playerPos.x][this.playerPos.y];
         playerTile.setTileType(TileType.PLAYER_TILE)
 
         let cursors = this.input.keyboard.createCursorKeys();
 
-        //some testing for camera
-        let controlConfig = {
-            camera: this.cameras.main,
-            left: cursors.left,
-            right: cursors.right,
-            zoomIn: cursors.up,
-            zoomOut: cursors.down,
-            acceleration: 0.04,
-            drag: 0.0005,
-            maxSpeed: 0.7
-        };
-
-
-        this.cameras.main.zoom = 0.7;
+        this.cameras.main.zoom = 0.4;
         this.crashTimer.paused = false;
     }
 
@@ -151,7 +132,7 @@ export class MainScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-       
+
         //game logic for player and server movements
         let oldPlayerPos = new Coordinate(this.playerPos.x, this.playerPos.y);
         let moved = false;
@@ -262,10 +243,10 @@ export class MainScene extends Phaser.Scene {
 
     getScreenToWorldCoords(c: Coordinate): Coordinate {
         //I'm on cocaine
-        let x = Math.floor((((c.x - this.centerX) / this.tileWidthHalf) + ((c.y - this.centerY) / this.tileHeightHalf))/2);
+        let x = Math.floor((((c.x - this.centerX) / this.tileWidthHalf) + ((c.y - this.centerY) / this.tileHeightHalf)) / 2);
         return new Coordinate(
             x,
-            Math.floor((c.y-this.centerY)/this.tileHeightHalf) - x
+            Math.floor((c.y - this.centerY) / this.tileHeightHalf) - x
         );
     }
 
@@ -336,29 +317,21 @@ export class MainScene extends Phaser.Scene {
         return MoveType.Illegal; //catching the "should never happen" ase
     }
 
-    createEmergency()
-    {
-        //var x = Phaser.Math.Between(0, this.worldWidth-1);
-        //var y = Phaser.Math.Between(0, this.worldHeight-1);
-        //Above were not working (result of between is NaN), so I hardcoded the numbers for now
-        console.log(Phaser.Math.Between(0, this.worldWidth-1));
-        var x = Math.floor(Math.random()* 42 + 0);
-        var y = Math.floor(Math.random()* 42 + 0);
-        if(/*this.cellIsWorkingServer(x,y)*/true)
-        {
-            //this.world![x][y].setTileType(TileType.BROKEN_TILE);
+    createEmergency(): void {
+        let x = Phaser.Math.Between(0, this.worldWidth - 1);
+        let y = Phaser.Math.Between(0, this.worldHeight - 1);
+        if (this.cellIsWorkingServer(x, y)) {
             console.log("Broke server at (%d, %d)", x, y);
-            
+            this.world![x][y].setTileType(TileType.BROKEN_TILE);
         }
-        else
-        {
+        else {
             /* We missed? Player lucky or just find the nearest working server and break that? */
             console.log("Missed! (%d, %d)", x, y);
         }
     }
 
     cellIsWorkingServer(x: integer, y: integer): Boolean {
-        return this.world![x][y].getTileType() === 'serverTile';
+        return this.world![x][y].getTileType() === TileType.SERVER_TILE;
     }
     outOfBounds(x: integer, y: integer): Boolean {
         return x < 0 || y < 0 || x >= this.worldWidth! || y >= this.worldHeight!;
@@ -386,14 +359,14 @@ class Tile extends Phaser.GameObjects.Sprite {
     setTileType(tileType: TileType) {
         this.tileType = tileType
 
-        if(this.anims.isPlaying) {
+        if (this.anims.isPlaying) {
             this.anims.stop();
         }
-        if(tileType == TileType.SERVER_TILE) {
-            this.anims.play('serverBlinking',false, Math.floor(Math.random()*15));
+        if (tileType == TileType.SERVER_TILE) {
+            this.anims.play('serverBlinking', false, Math.floor(Math.random() * 15));
         }
-        if(tileType == TileType.BROKEN_TILE) {
-            this.anims.play('brokenServerBlinking',false, Math.floor(Math.random()*15));
+        if (tileType == TileType.BROKEN_TILE) {
+            this.anims.play('brokenServerBlinking', false, Math.floor(Math.random() * 15));
         }
 
         this.setTexture(tileType)
