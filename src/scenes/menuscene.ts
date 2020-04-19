@@ -1,5 +1,4 @@
 export class MenuScene extends Phaser.Scene {
-
     constructor() {
         super({
             key: "MenuScene"
@@ -13,11 +12,10 @@ export class MenuScene extends Phaser.Scene {
             "Keep the datacenter alive!\n\n\nClick Anywhere to start!")
             .setScale(1);
 
-        this.input.once('pointerdown', function () {
+        this.input.once('pointerdown', this.loadScene, this);
+    }
 
-            // @ts-ignore 
-            this.scene.start('MainScene');            
-
-        }, this);
+    loadScene() {
+        this.scene.start('MainScene');
     }
 }

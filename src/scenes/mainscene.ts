@@ -30,7 +30,8 @@ export class MainScene extends Phaser.Scene {
     private crashTimer: Time.TimerEvent | null = null;
 
     //gameplay
-    private score: integer = 0;
+    public score: integer = 0;
+    public nrBrokenServers: integer = 0;
 
     //sounds    
     private serverCrashSound: Phaser.Sound.BaseSound | null = null;
@@ -79,7 +80,7 @@ export class MainScene extends Phaser.Scene {
         this.fixedSound = this.sound.add('fixedSound');
         this.moveWallSound = this.sound.add('moveWall');
         this.backgroundSound = this.sound.add('backgroundHumm');
-        this.backgroundSound.play({volume: 0.3, loop: true})
+        this.backgroundSound.play({ volume: 0.3, loop: true })
 
         //define keyboard input
         this.downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
@@ -132,6 +133,9 @@ export class MainScene extends Phaser.Scene {
 
         this.cameras.main.zoom = 0.4;
         this.crashTimer.paused = false;
+
+        //HUD test
+        this.scene.launch('HUDScene', {four: 4});
     }
 
     moveUp() {
@@ -167,6 +171,7 @@ export class MainScene extends Phaser.Scene {
                 let cell = this.world[x][y];
                 cell.fix();
                 if (cell.isFixed()) {
+                    this.nrBrokenServers--;
                     this.score++;
                     this.fixedSound!.play();
                     cell.setTileType(TileType.SERVER_TILE);
@@ -261,7 +266,7 @@ export class MainScene extends Phaser.Scene {
             let playerTile = this.world[this.playerPos!.x][this.playerPos!.y];
             playerTile.setTileType(TileType.PLAYER_TILE);
 
-            if(!(moveType === MoveType.Illegal || moveType === MoveType.Step)) {
+            if (!(moveType === MoveType.Illegal || moveType === MoveType.Step)) {
                 this.moveWallSound!.play();
             }
         }
@@ -361,6 +366,7 @@ export class MainScene extends Phaser.Scene {
             console.log("Broke server at (%d, %d)", x, y);
             this.world![x][y].setTileType(TileType.BROKEN_TILE);
             this.serverCrashSound!.play();
+            this.nrBrokenServers++;
         }
         else {
             /* We missed? Player lucky or just find the nearest working server and break that? */
@@ -391,24 +397,25 @@ class Tile extends Phaser.GameObjects.Sprite {
     private tileType: TileType
     public readonly row: number
     public readonly col: number
-    private fixed = 0;
+    private amountFixed: number
 
     constructor(scene: Phaser.Scene, x: number, y: number, texture: string, tileType: TileType, row: number, col: number, frame?: string | integer) {
         super(scene, x, y, texture, frame)
         this.tileType = tileType
         this.row = row
         this.col = col
+        this.amountFixed = 0
     }
 
     fix() {
-        this.fixed++;
+        this.amountFixed++;
     }
 
     isFixed() {
-        if(this.fixed == 20) {
-            this.fixed = 0;
+        if (this.amountFixed == 20) {
+            this.amountFixed = 0;
+            return true;
         }
-        return true;
     }
 
     setTileType(tileType: TileType) {

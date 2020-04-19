@@ -1,6 +1,7 @@
 import 'phaser';
 import { MenuScene } from './scenes/menuscene';
 import { MainScene } from './scenes/mainscene';
+import { HUDScene } from './scenes/HUDscene';
 
 export default class Demo extends Phaser.Scene
 {
@@ -20,7 +21,7 @@ const config = {
     backgroundColor: '#636363',
     width: 1024,
     height: 800,
-    scene: [MenuScene, MainScene], 
+    scene: [MenuScene, MainScene, HUDScene], 
     input: { 
         mouse: true
     }
