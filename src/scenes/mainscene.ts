@@ -35,6 +35,10 @@ export class MainScene extends Phaser.Scene {
     private backgroundSound: Phaser.Sound.BaseSound | null = null;
     private fixedSound: Phaser.Sound.BaseSound | null = null;
 
+    //scoring    
+    private score: integer = 0;
+    private nrBrokenServers: integer = 0;
+
     constructor() {
         super({
             key: "MainScene",
@@ -167,7 +171,9 @@ export class MainScene extends Phaser.Scene {
                 let cell = this.world[x][y];
                 cell.fix();
                 if (cell.isFixed()) {
-                    this.events.emit('fix');
+                    this.score++;
+                    this.nrBrokenServers--;
+                    this.events.emit('updateHUD', this.score, this.nrBrokenServers);
                     this.fixedSound!.play();
                     cell.setTileType(TileType.SERVER_TILE);
                 }
@@ -358,14 +364,15 @@ export class MainScene extends Phaser.Scene {
         let x = Phaser.Math.Between(0, this.worldWidth - 1);
         let y = Phaser.Math.Between(0, this.worldHeight - 1);
         if (this.cellIsWorkingServer(x, y)) {
-            console.log("Broke server at (%d, %d)", x, y);
+            //console.log("Broke server at (%d, %d)", x, y);
             this.world![x][y].setTileType(TileType.BROKEN_TILE);
             this.serverCrashSound!.play();
-            this.events.emit('break');
+            this.nrBrokenServers++;
+            this.events.emit('updateHUD', this.score, this.nrBrokenServers);
         }
         else {
             /* We missed? Player lucky or just find the nearest working server and break that? */
-            console.log("Missed! (%d, %d)", x, y);
+            //console.log("Missed! (%d, %d)", x, y);
         }
     }
 
