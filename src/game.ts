@@ -1,7 +1,7 @@
 import 'phaser';
 import { MenuScene } from './scenes/menuscene';
 import { MainScene } from './scenes/mainscene';
-import { HUDScene } from './scenes/HUDscene';
+import { HUDScene } from './scenes/HUDScene';
 
 export default class Demo extends Phaser.Scene
 {

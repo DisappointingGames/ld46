@@ -29,10 +29,6 @@ export class MainScene extends Phaser.Scene {
 
     private crashTimer: Time.TimerEvent | null = null;
 
-    //gameplay
-    public score: integer = 0;
-    public nrBrokenServers: integer = 0;
-
     //sounds    
     private serverCrashSound: Phaser.Sound.BaseSound | null = null;
     private moveWallSound: Phaser.Sound.BaseSound | null = null;
@@ -135,7 +131,7 @@ export class MainScene extends Phaser.Scene {
         this.crashTimer.paused = false;
 
         //HUD test
-        this.scene.launch('HUDScene', {four: 4});
+        this.scene.launch('HUDScene');
     }
 
     moveUp() {
@@ -171,8 +167,7 @@ export class MainScene extends Phaser.Scene {
                 let cell = this.world[x][y];
                 cell.fix();
                 if (cell.isFixed()) {
-                    this.nrBrokenServers--;
-                    this.score++;
+                    this.events.emit('fix');
                     this.fixedSound!.play();
                     cell.setTileType(TileType.SERVER_TILE);
                 }
@@ -366,7 +361,7 @@ export class MainScene extends Phaser.Scene {
             console.log("Broke server at (%d, %d)", x, y);
             this.world![x][y].setTileType(TileType.BROKEN_TILE);
             this.serverCrashSound!.play();
-            this.nrBrokenServers++;
+            this.events.emit('break');
         }
         else {
             /* We missed? Player lucky or just find the nearest working server and break that? */
@@ -390,7 +385,6 @@ export class MainScene extends Phaser.Scene {
         return this.world![x][y].getTileType() === TileType.EMPTY_TILE;
     }
 }
-
 
 class Tile extends Phaser.GameObjects.Sprite {
 
