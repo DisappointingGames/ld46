@@ -1,4 +1,3 @@
-import { World } from "../World";
 import { Scene, GameObjects, Time } from "phaser";
 import { Coordinate } from "../Coordinate";
 import { MoveType } from "../MoveType";
@@ -20,14 +19,10 @@ export class MainScene extends Phaser.Scene {
     private leftKey: Phaser.Input.Keyboard.Key | null = null;
     private rightKey: Phaser.Input.Keyboard.Key | null = null;
     private spaceKey: Phaser.Input.Keyboard.Key | null = null;
+    private shiftKey: Phaser.Input.Keyboard.Key | null = null;
 
     //for player movement and animation 
-    private player: any;
-    private dX: integer = 0;
-    private dY: integer = 0;
-    private facing: string = "south";
     private playerPos: Coordinate = new Coordinate(0, 0);//this is the position in "tile coords"
-    private playerMapPos: Coordinate = new Coordinate(0, 0);//this is the position in "screen coords"
     private playerSpeed = 2.0;
 
     //private playerSprite = new GameObjects.Sprite(this, 0,0,'');
@@ -39,6 +34,9 @@ export class MainScene extends Phaser.Scene {
             mapAdd: { time: "time" }
         });
     }
+
+    //gameplay
+    private score: integer = 0;
 
     // noinspection JSUnusedGlobalSymbols
     preload(): void {
@@ -69,6 +67,7 @@ export class MainScene extends Phaser.Scene {
         this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
         this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.shiftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
         //blinking
         this.anims.create({
@@ -106,7 +105,6 @@ export class MainScene extends Phaser.Scene {
 
         //this player tile is just for testing the game logic until we have a player done
         this.playerPos = new Coordinate(this.worldWidth / 2, this.worldHeight / 2);
-        this.playerMapPos = this.getWorldToScreenCoords(this.playerPos);
         let playerTile = this.world[this.playerPos.x][this.playerPos.y];
         playerTile.setTileType(TileType.PLAYER_TILE)
 
@@ -137,36 +135,50 @@ export class MainScene extends Phaser.Scene {
         let oldPlayerPos = new Coordinate(this.playerPos.x, this.playerPos.y);
         let moved = false;
 
-        let isSpaceDown = this.spaceKey!.isDown
+        let spaceDown = this.spaceKey!.isDown
+        let shiftDown = this.shiftKey!.isDown
 
-        //handle keyboard input
+        //handle keyboard input        
         let moveType;
-        if (this.keyboard.JustDown(this.downKey!)) {
-            moveType = this.getMoveType(Dir.DOWN, isSpaceDown, this.playerPos.x, this.playerPos.y + 1);
-            if (moveType != MoveType.Illegal) {
-                this.playerPos.y++;
-                moved = true;
+        if (shiftDown) {//trying to fix a server
+            let x = this.playerPos.x
+            let y = this.playerPos.y - 1
+            if (this.cellIsBrokenServer(x, y)) {
+                let cell = this.world[x][y];
+                cell.fix();
+                if (cell.isFixed()) {
+                    this.score++;
+                    cell.setTileType(TileType.SERVER_TILE);
+                }
             }
-        }
-        if (this.keyboard.JustDown(this.upKey!)) {
-            moveType = this.getMoveType(Dir.UP, isSpaceDown, this.playerPos.x, this.playerPos.y - 1);
-            if (moveType != MoveType.Illegal) {
-                this.playerPos.y--;
-                moved = true;
+        } else { //if not fixing, see if you moved
+            if (this.keyboard.JustDown(this.downKey!)) {
+                moveType = this.getMoveType(Dir.DOWN, spaceDown, this.playerPos.x, this.playerPos.y + 1);
+                if (moveType != MoveType.Illegal) {
+                    this.playerPos.y++;
+                    moved = true;
+                }
             }
-        }
-        if (this.keyboard.JustDown(this.leftKey!)) {
-            moveType = this.getMoveType(Dir.LEFT, isSpaceDown, this.playerPos.x - 1, this.playerPos.y);
-            if (moveType != MoveType.Illegal) {
-                this.playerPos.x--;
-                moved = true;
+            if (this.keyboard.JustDown(this.upKey!)) {
+                moveType = this.getMoveType(Dir.UP, spaceDown, this.playerPos.x, this.playerPos.y - 1);
+                if (moveType != MoveType.Illegal) {
+                    this.playerPos.y--;
+                    moved = true;
+                }
             }
-        }
-        if (this.keyboard.JustDown(this.rightKey!)) {
-            moveType = this.getMoveType(Dir.RIGHT, isSpaceDown, this.playerPos.x + 1, this.playerPos.y);
-            if (moveType != MoveType.Illegal) {
-                this.playerPos.x++;
-                moved = true;
+            if (this.keyboard.JustDown(this.leftKey!)) {
+                moveType = this.getMoveType(Dir.LEFT, spaceDown, this.playerPos.x - 1, this.playerPos.y);
+                if (moveType != MoveType.Illegal) {
+                    this.playerPos.x--;
+                    moved = true;
+                }
+            }
+            if (this.keyboard.JustDown(this.rightKey!)) {
+                moveType = this.getMoveType(Dir.RIGHT, spaceDown, this.playerPos.x + 1, this.playerPos.y);
+                if (moveType != MoveType.Illegal) {
+                    this.playerPos.x++;
+                    moved = true;
+                }
             }
         }
 
@@ -333,6 +345,11 @@ export class MainScene extends Phaser.Scene {
     cellIsWorkingServer(x: integer, y: integer): Boolean {
         return this.world![x][y].getTileType() === TileType.SERVER_TILE;
     }
+
+    cellIsBrokenServer(x: integer, y: integer): Boolean {
+        return this.world![x][y].getTileType() === TileType.BROKEN_TILE;
+    }
+
     outOfBounds(x: integer, y: integer): Boolean {
         return x < 0 || y < 0 || x >= this.worldWidth! || y >= this.worldHeight!;
     }
@@ -348,12 +365,21 @@ class Tile extends Phaser.GameObjects.Sprite {
     private tileType: TileType
     public readonly row: number
     public readonly col: number
+    private fixed = 0;
 
     constructor(scene: Phaser.Scene, x: number, y: number, texture: string, tileType: TileType, row: number, col: number, frame?: string | integer) {
         super(scene, x, y, texture, frame)
         this.tileType = tileType
         this.row = row
         this.col = col
+    }
+
+    fix() {
+        this.fixed++;
+    }
+
+    isFixed() {
+        return this.fixed == 20
     }
 
     setTileType(tileType: TileType) {
