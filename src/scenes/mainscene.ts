@@ -46,18 +46,20 @@ export class MainScene extends Phaser.Scene {
 
     // noinspection JSUnusedGlobalSymbols
     preload(): void {
+        this.load.image("emptyTile", 'assets/graphics/empty_tile.png')
+        this.load.image("playerTile", 'assets/graphics/player_tile.png')
+        //this.load.image("serverTile", '/assets/graphics/server.png')
+        //this.load.image("brokenServerTile", 'assets/graphics/server.png');
         let spritesheetconfig = {
-            frameWidth: 32,
-            frameHeight: 48,
+            frameWidth: 176,
+            frameHeight: 300,
             startFrame: 0,
-            endFrame: 5,
+            endFrame: 14,
             margin: 0,
             spacing: 0
         };
-        this.load.image("emptyTile", 'assets/graphics/empty_tile.png')
-        this.load.image("playerTile", 'assets/graphics/player_tile.png')
-        this.load.image("serverTile", '/assets/graphics/server.png')
-        this.load.image("brokenServerTile", 'assets/graphics/server.png');
+        this.load.spritesheet('serverTile', 'assets/graphics/server-working-tex.png', spritesheetconfig);
+        this.load.spritesheet('brokenServerTile', 'assets/graphics/server-error-tex.png', spritesheetconfig);
     }
 
     create(): void {
@@ -74,6 +76,20 @@ export class MainScene extends Phaser.Scene {
         this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
         this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
+        //blinking
+        this.anims.create({
+            key: 'serverBlinking',            
+            frames: this.anims.generateFrameNames('serverTile', {start: 0, end: 14}),
+            frameRate: 6,
+            repeat: Phaser.FOREVER
+        })
+        this.anims.create({
+            key: 'brokenServerBlinking',            
+            frames: this.anims.generateFrameNames('brokenServerTile', {start: 0, end: 14}),
+            frameRate: 6,
+            repeat: Phaser.FOREVER
+        })
+
         //initial world building
         for (let i = 0; i < this.worldWidth; i++) {
             let inner = [];
@@ -83,6 +99,8 @@ export class MainScene extends Phaser.Scene {
                 let tileType = (Math.random() < 0.24) ? TileType.SERVER_TILE : TileType.EMPTY_TILE;
 
                 let tile = new Tile(this, tc.x, tc.y, tileType, tileType, i, j);
+                                
+                tile.setTileType(tileType);//for blinking
                 this.add.existing(tile);
 
                 tile.setDepth(this.centerY + tc.y);
@@ -113,7 +131,7 @@ export class MainScene extends Phaser.Scene {
         };
 
 
-        this.cameras.main.zoom = 0.2;
+        this.cameras.main.zoom = 0.7;
         this.crashTimer.paused = false;
     }
 
@@ -133,28 +151,7 @@ export class MainScene extends Phaser.Scene {
     }
 
     update(time: number, delta: number) {
-        this.detectKeyInput();
-        //TODO animations
-        /*
-        if (this.dY == 0 && this.dX == 0)
-        {
-            this.player.animations.stop();
-            this.player.animations.currentAnim.frame=0;
-        }else{
-            if(this.player.animations.currentAnim!=this.facing){
-                this.player.animations.play(this.acing);
-            }
-        }*/
-
-        //TODO connect to game logic for tiles
-        this.playerMapPos.x += this.playerSpeed * this.dX;
-        this.playerMapPos.y += this.playerSpeed * this.dY;
-        //get the new player map tile
-        let targetPosition = this.getScreenToWorldCoords(this.playerMapPos);
-        //TODO now connect this new potential coordinate to the existing logic.
-        console.log("targetPosition: " + targetPosition);
-
-
+       
         //game logic for player and server movements
         let oldPlayerPos = new Coordinate(this.playerPos.x, this.playerPos.y);
         let moved = false;
@@ -370,64 +367,10 @@ export class MainScene extends Phaser.Scene {
     cellEmpty(x: integer, y: integer): Boolean {
         return this.world![x][y].getTileType() === TileType.EMPTY_TILE;
     }
-
-    detectKeyInput(): void {//assign direction for character & set x,y speed components
-        if (this.upKey?.isDown) {
-            this.dY = -1;
-        }
-        else if (this.downKey?.isDown) {
-            this.dY = 1;
-        }
-        else {
-            this.dY = 0;
-        }
-        if (this.rightKey?.isDown) {
-            this.dX = 1;
-            if (this.dY == 0) {
-                this.facing = "east";
-            }
-            else if (this.dY == 1) {
-                this.facing = "southeast";
-                this.dX = this.dY = 0.5;
-            }
-            else {
-                this.facing = "northeast";
-                this.dX = 0.5;
-                this.dY = -0.5;
-            }
-        }
-        else if (this.leftKey?.isDown) {
-            this.dX = -1;
-            if (this.dY == 0) {
-                this.facing = "west";
-            }
-            else if (this.dY == 1) {
-                this.facing = "southwest";
-                this.dY = 0.5;
-                this.dX = -0.5;
-            }
-            else {
-                this.facing = "northwest";
-                this.dX = this.dY = -0.5;
-            }
-        }
-        else {
-            this.dX = 0;
-            if (this.dY == 0) {
-                //facing="west";
-            }
-            else if (this.dY == 1) {
-                this.facing = "south";
-            }
-            else {
-                this.facing = "north";
-            }
-        }
-    }
 }
 
 
-class Tile extends Phaser.GameObjects.Image {
+class Tile extends Phaser.GameObjects.Sprite {
 
     private tileType: TileType
     public readonly row: number
@@ -442,6 +385,17 @@ class Tile extends Phaser.GameObjects.Image {
 
     setTileType(tileType: TileType) {
         this.tileType = tileType
+
+        if(this.anims.isPlaying) {
+            this.anims.stop();
+        }
+        if(tileType == TileType.SERVER_TILE) {
+            this.anims.play('serverBlinking',false, Math.floor(Math.random()*15));
+        }
+        if(tileType == TileType.BROKEN_TILE) {
+            this.anims.play('brokenServerBlinking',false, Math.floor(Math.random()*15));
+        }
+
         this.setTexture(tileType)
     }
 
