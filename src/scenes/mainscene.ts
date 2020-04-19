@@ -28,15 +28,22 @@ export class MainScene extends Phaser.Scene {
     //private playerSprite = new GameObjects.Sprite(this, 0,0,'');
 
     private crashTimer: Time.TimerEvent | null = null;
+
+    //gameplay
+    private score: integer = 0;
+
+    //sounds    
+    private serverCrashSound: Phaser.Sound.BaseSound | null = null;
+    private moveWallSound: Phaser.Sound.BaseSound | null = null;
+    private backgroundSound: Phaser.Sound.BaseSound | null = null;
+    private fixedSound: Phaser.Sound.BaseSound | null = null;
+
     constructor() {
         super({
             key: "MainScene",
             mapAdd: { time: "time" }
         });
     }
-
-    //gameplay
-    private score: integer = 0;
 
     // noinspection JSUnusedGlobalSymbols
     preload(): void {
@@ -52,6 +59,12 @@ export class MainScene extends Phaser.Scene {
         };
         this.load.spritesheet('serverTile', 'assets/graphics/server-working-tex.png', spritesheetconfig);
         this.load.spritesheet('brokenServerTile', 'assets/graphics/server-error-tex.png', spritesheetconfig);
+
+        //sounds
+        this.load.audio('serverCrash', './assets/sound/hdd-break1.mp3');
+        this.load.audio('moveWall', './assets/sound/move-wall.mp3');
+        this.load.audio('backgroundHumm', './assets/sound/bg-humm.mp3');
+        this.load.audio('fixedSound', './assets/sound/powerup.mp3');
     }
 
     create(): void {
@@ -60,6 +73,13 @@ export class MainScene extends Phaser.Scene {
         //set camera
         this.cameras.main.setViewport(0, 0, 1024, 800);
         this.cameras.main.setScroll(42, 42);
+
+        //create sounds
+        this.serverCrashSound = this.sound.add('serverCrash');
+        this.fixedSound = this.sound.add('fixedSound');
+        this.moveWallSound = this.sound.add('moveWall');
+        this.backgroundSound = this.sound.add('backgroundHumm');
+        this.backgroundSound.play({volume: 0.3, loop: true})
 
         //define keyboard input
         this.downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
@@ -148,6 +168,7 @@ export class MainScene extends Phaser.Scene {
                 cell.fix();
                 if (cell.isFixed()) {
                     this.score++;
+                    this.fixedSound!.play();
                     cell.setTileType(TileType.SERVER_TILE);
                 }
             }
@@ -239,6 +260,10 @@ export class MainScene extends Phaser.Scene {
             //regardless, the new player position becomes player tile
             let playerTile = this.world[this.playerPos!.x][this.playerPos!.y];
             playerTile.setTileType(TileType.PLAYER_TILE);
+
+            if(!(moveType === MoveType.Illegal || moveType === MoveType.Step)) {
+                this.moveWallSound!.play();
+            }
         }
 
         //update camera
@@ -335,6 +360,7 @@ export class MainScene extends Phaser.Scene {
         if (this.cellIsWorkingServer(x, y)) {
             console.log("Broke server at (%d, %d)", x, y);
             this.world![x][y].setTileType(TileType.BROKEN_TILE);
+            this.serverCrashSound!.play();
         }
         else {
             /* We missed? Player lucky or just find the nearest working server and break that? */
@@ -379,7 +405,10 @@ class Tile extends Phaser.GameObjects.Sprite {
     }
 
     isFixed() {
-        return this.fixed == 20
+        if(this.fixed == 20) {
+            this.fixed = 0;
+        }
+        return true;
     }
 
     setTileType(tileType: TileType) {
